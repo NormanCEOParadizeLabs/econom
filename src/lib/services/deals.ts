@@ -4,19 +4,19 @@ import { distanceKm } from "@/lib/engine";
 
 export interface DealView {
   id: string; title: string; category: string; description: string | null; dealLabel: string; conditions: string | null;
-  validUntil: string | null; verifiedAt: string | null; sourceUrl: string; useUrl: string | null; isSponsored: boolean;
+  validUntil: string | null; verifiedAt: string | null; sourceUrl: string; useUrl: string | null; isSponsored: boolean; auto: boolean;
   merchant: { name: string; address: string; postalCode: string; city: string; lat: number; lon: number; phone: string | null; website: string | null };
   distanceKm: number | null;
 }
 
-const SELECT = "id, title, category, description, deal_label, conditions, valid_until, verified_at, source_url, use_url, is_sponsored, merchant_locations!inner(name, address, postal_code, city, lat, lon, phone, website)";
+const SELECT = "id, title, category, description, deal_label, conditions, valid_until, verified_at, source_url, use_url, is_sponsored, origin, merchant_locations!inner(name, address, postal_code, city, lat, lon, phone, website)";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toView(d: any, origin?: { lat: number; lon: number }): DealView {
   const m = d.merchant_locations;
   return {
     id: d.id, title: d.title, category: d.category, description: d.description, dealLabel: d.deal_label, conditions: d.conditions, validUntil: d.valid_until,
-    verifiedAt: d.verified_at, sourceUrl: d.source_url, useUrl: d.use_url, isSponsored: d.is_sponsored,
+    verifiedAt: d.verified_at, sourceUrl: d.source_url, useUrl: d.use_url, isSponsored: d.is_sponsored, auto: d.origin === "auto",
     merchant: { name: m.name, address: m.address, postalCode: m.postal_code, city: m.city, lat: m.lat, lon: m.lon, phone: m.phone, website: m.website },
     distanceKm: origin ? Math.round(distanceKm(origin.lat, origin.lon, m.lat, m.lon) * 10) / 10 : null,
   };

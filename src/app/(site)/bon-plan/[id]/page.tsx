@@ -30,7 +30,7 @@ export default async function Page({ params }: Props) {
           {d.description && <p className="leading-relaxed">{d.description}</p>}
           <Card className="space-y-3">
             <div className="flex gap-3"><IconPin className="mt-0.5 shrink-0 text-brand-strong" /><p><strong>{d.merchant.name}</strong><br /><span className="text-sm text-muted">{d.merchant.address}, {d.merchant.postalCode} {d.merchant.city}</span></p></div>
-            <div className="flex gap-3"><IconClock className="mt-0.5 shrink-0 text-brand-strong" /><p className="text-sm"><strong>{d.validUntil ? `Valable jusqu'au ${dateFr(d.validUntil)}` : "Offre permanente"}</strong><br /><span className="text-muted">Vérifiée le {dateFr(d.verifiedAt)}</span></p></div>
+            <div className="flex gap-3"><IconClock className="mt-0.5 shrink-0 text-brand-strong" /><p className="text-sm"><strong>{d.validUntil ? `Valable jusqu'au ${dateFr(d.validUntil)}` : "Offre permanente"}</strong><br /><span className="text-muted">{d.auto ? "Repérée automatiquement, source contrôlée le" : "Vérifiée le"} {dateFr(d.verifiedAt)}</span></p></div>
             {d.conditions && <p className="text-sm text-muted"><strong className="text-ink">Conditions :</strong> {d.conditions}</p>}
           </Card>
           <a href={d.useUrl ?? d.sourceUrl} target="_blank" rel="noopener noreferrer nofollow" className="pressable inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-brand px-5 font-bold text-on-brand">{d.useUrl ? "Profiter de l'offre" : "Voir la source officielle"} <IconExternal width={18} height={18} /></a>

@@ -43,7 +43,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             {m.website && <a href={m.website} target="_blank" rel="noopener noreferrer" className="font-bold underline underline-offset-4">Site officiel</a>}
           </p>
         )}
-        <div className="flex gap-3"><IconClock className="mt-0.5 shrink-0 text-brand-strong" /><p className="text-sm"><strong>{d.validUntil ? `Valable jusqu'au ${dateFr(d.validUntil)}` : "Offre permanente"}</strong><br /><span className="text-muted">Vérifiée le {dateFr(d.verifiedAt)}</span></p></div>
+        <div className="flex gap-3"><IconClock className="mt-0.5 shrink-0 text-brand-strong" /><p className="text-sm"><strong>{d.validUntil ? `Valable jusqu'au ${dateFr(d.validUntil)}` : "Offre permanente"}</strong><br /><span className="text-muted">{d.auto ? "Repérée automatiquement, source contrôlée le" : "Vérifiée le"} {dateFr(d.verifiedAt)}</span></p></div>
       </Card>
       {d.conditions && <Card><h2 className="font-bold">Conditions</h2><p className="mt-1 text-sm leading-relaxed text-muted">{d.conditions}</p></Card>}
       <div className="flex flex-col gap-2 sm:flex-row">

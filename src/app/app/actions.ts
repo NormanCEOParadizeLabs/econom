@@ -215,3 +215,34 @@ export async function submitDeal(_prev: FormState, form: FormData): Promise<Form
   if (e2) return { error: "Enregistrement impossible." };
   return { ok: "Merci ! Ta proposition sera vérifiée par notre équipe avant d'être publiée." };
 }
+
+const ImportSchema = z.array(z.object({
+  name: z.string().min(1).max(80),
+  category: z.enum(["telephone", "internet", "streaming", "musique", "sport", "logiciels", "services", "energie", "assurance", "autre"]),
+  priceCents: z.number().int().min(1).max(10_000_000),
+  previousPriceCents: z.number().int().min(0).max(10_000_000).nullable(),
+  frequency: z.enum(["weekly", "monthly", "quarterly", "yearly"]),
+  firstSeen: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  nextChargeDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+})).min(1).max(60);
+
+/** Ajoute les abonnements détectés que l'utilisateur a cochés. La limite de la formule gratuite reste appliquée par la base. */
+export async function importContracts(items: unknown): Promise<{ added: number; skipped: number; limited: boolean; error?: string }> {
+  const { supabase, user } = await session();
+  const parsed = ImportSchema.safeParse(items);
+  if (!parsed.success) return { added: 0, skipped: 0, limited: false, error: "Sélection invalide." };
+  const { data: existing } = await supabase.from("user_contracts").select("name").eq("active", true);
+  const known = new Set((existing ?? []).map((c) => c.name.toLowerCase()));
+  let added = 0, skipped = 0, limited = false;
+  for (const c of parsed.data) {
+    if (known.has(c.name.toLowerCase())) { skipped++; continue; }
+    const { error } = await supabase.from("user_contracts").insert({
+      user_id: user.id, name: c.name, category: c.category, price_cents: c.priceCents, previous_price_cents: c.previousPriceCents, frequency: c.frequency,
+      started_on: c.firstSeen, next_charge_date: c.nextChargeDate && c.nextChargeDate >= new Date().toISOString().slice(0, 10) ? c.nextChargeDate : null, source: "import",
+    });
+    if (error) { if (error.message.includes("PLAN_LIMIT_CONTRACTS")) { limited = true; break; } continue; }
+    added++; known.add(c.name.toLowerCase());
+  }
+  revalidatePath("/app", "layout");
+  return { added, skipped, limited };
+}

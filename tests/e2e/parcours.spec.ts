@@ -244,3 +244,25 @@ test("accessibilité : aucun défaut critique ou sérieux sur les parcours essen
     expect(serious.map((v) => `${path} · ${v.id} · ${v.nodes[0]?.html.slice(0, 120)}`)).toEqual([]);
   }
 });
+
+test("import d'un relevé bancaire : abonnements détectés, ajout au suivi, conseils", async ({ page }) => {
+  const email = newEmail("releve");
+  await signUp(page, email);
+  await admin.from("subscriptions").update({ status: "active", current_period_end: new Date(Date.now() + 20 * 864e5).toISOString() }).eq("user_id", await userIdByEmail(email));
+  const rows = ["Date;Libellé;Débit;Crédit"];
+  for (let m = 1; m <= 10; m++) {
+    const mm = String(m).padStart(2, "0");
+    rows.push(`05/${mm}/2026;PRLV SEPA NETFLIX INTERNATIONAL;${m >= 8 ? "14,99" : "13,49"};`, `12/${mm}/2025;PRLV SEPA FREE MOBILE;19,99;`, `12/${mm}/2026;PRLV SEPA FREE MOBILE;19,99;`, `20/${mm}/2026;CARTE SUPERMARCHE;${30 + m * 7},10;`, `28/${mm}/2026;VIR SALAIRE;;2000,00`);
+  }
+  await page.goto("/app/abonnements/importer");
+  await page.locator("#releve").setInputFiles({ name: "releve.csv", mimeType: "text/csv", buffer: Buffer.from(rows.join("\n"), "latin1") });
+  await expect(page.getByText(/2 prélèvements réguliers repérés/)).toBeVisible();
+  await expect(page.getByText("Prix en hausse")).toBeVisible();
+  await expect(page.getByText("SUPERMARCHE")).toHaveCount(0);
+  await page.getByRole("button", { name: /Ajouter 2 abonnements/ }).click();
+  await expect(page.getByText("2 abonnements ajoutés")).toBeVisible();
+  await page.getByRole("link", { name: /Voir mes abonnements/ }).click();
+  await expect(page.getByText("À regarder de plus près")).toBeVisible();
+  await expect(page.getByText("Netflix a augmenté")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Comparer maintenant" })).toHaveAttribute("href", /fournisseur=Free\+Mobile&prix=19\.99/);
+});

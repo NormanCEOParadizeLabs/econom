@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
-import { Wordmark } from "@/components/logo";
+import { Symbol } from "@/components/logo";
 import { Badge } from "@/components/ui";
 import { requireAdmin } from "@/lib/auth";
 import { AdminTabs } from "./_components/tabs";
@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <div className="flex items-center justify-between gap-3 pb-3">
             <div className="flex items-center gap-2.5">
               <Link href="/admin" aria-label="ECONOM. — Administration">
-                <Wordmark className="h-5" />
+                <Symbol className="h-8 w-8" />
               </Link>
               <Badge tone="brand">Admin</Badge>
             </div>

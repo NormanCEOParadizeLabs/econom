@@ -3,6 +3,7 @@ import { configured, env } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { compare, eurosToCents, type Needs } from "@/lib/engine";
 import { loadPublicOffers } from "@/lib/catalog";
+import { runDealsFinder } from "@/lib/ai/deals-finder";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const plusDays = (n: number) => iso(new Date(Date.now() + n * 864e5));
@@ -96,6 +97,16 @@ export async function runDaily(now = new Date()): Promise<Record<string, number>
 
   // 6. E-mails transactionnels (si un fournisseur est configuré et que l'utilisateur l'accepte).
   stats.emails_sent = configured.email() ? await sendPendingEmails() : 0;
+
+  // 6 bis. Bons plans : revérification des sources puis recherche automatique dans la ville suivante.
+  try {
+    const f = await runDealsFinder();
+    stats.deals_rechecked = f.rechecked.kept + f.rechecked.archived;
+    stats.deals_archived = f.rechecked.archived;
+    stats.deals_published = f.reports.reduce((a, r) => a + r.published, 0);
+  } catch {
+    stats.deals_finder_error = 1;
+  }
 
   // 7. Hygiène : compteurs de débit et événements anciens.
   await db.from("rate_limits").delete().lt("window_start", new Date(Date.now() - 2 * 864e5).toISOString());

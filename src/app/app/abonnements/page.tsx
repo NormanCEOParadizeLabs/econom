@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Badge, Card, EmptyState, LinkButton, Notice, PageTitle } from "@/components/ui";
 import { IconChevron, IconPlus, IconRepeat } from "@/components/icons";
 import { findPotentialDuplicates, monthlyEquivalentCents, type Frequency } from "@/lib/engine";
+import { subscriptionInsights } from "@/lib/bank-import";
 import { CONTRACT_CATEGORIES, FREQ_LABEL, dateFr, euro } from "@/lib/format";
 import { getMe } from "@/lib/me";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -14,19 +15,20 @@ export default async function Page() {
   const me = await getMe();
   if (!me) redirect("/connexion");
   const supabase = await supabaseServer();
-  const { data } = await supabase.from("user_contracts").select("id, name, category, price_cents, frequency, next_charge_date, commitment_end, to_review").eq("active", true).order("price_cents", { ascending: false });
+  const { data } = await supabase.from("user_contracts").select("id, name, category, price_cents, frequency, next_charge_date, commitment_end, to_review, started_on, previous_price_cents").eq("active", true).order("price_cents", { ascending: false });
   const contracts = data ?? [];
   const monthly = contracts.reduce((a, c) => a + monthlyEquivalentCents(c.price_cents, c.frequency as Frequency), 0);
   const byCat = new Map<string, number>();
   for (const c of contracts) byCat.set(c.category, (byCat.get(c.category) ?? 0) + monthlyEquivalentCents(c.price_cents, c.frequency as Frequency));
   const dups = findPotentialDuplicates(contracts.map((c) => ({ id: c.id, name: c.name, category: c.category, priceCents: c.price_cents, frequency: c.frequency as Frequency })));
+  const insights = subscriptionInsights(contracts.map((c) => ({ id: c.id, name: c.name, category: c.category, priceCents: c.price_cents, frequency: c.frequency as Frequency, startedOn: c.started_on, previousPriceCents: c.previous_price_cents, commitmentEnd: c.commitment_end })));
   const atLimit = me.plan === "free" && contracts.length >= me.limits.free_contracts;
   return (
     <>
       <PageTitle title="Mes abonnements" subtitle="Tout ce qui est prélevé régulièrement, au même endroit." action={!atLimit ? <LinkButton href="/app/abonnements/nouveau" size="sm"><IconPlus width={18} height={18} /> Ajouter</LinkButton> : undefined} />
       {contracts.length === 0 ? (
-        <EmptyState icon={<IconRepeat />} title="Aucun abonnement suivi" action={<LinkButton href="/app/abonnements/nouveau">Ajouter mon premier abonnement</LinkButton>}>
-          Ajoute tes abonnements à la main. ECONOM. ne lit pas ton compte bancaire : tu gardes la main sur ce que tu enregistres.
+        <EmptyState icon={<IconRepeat />} title="Aucun abonnement suivi" action={<div className="flex flex-col items-center gap-2"><LinkButton href="/app/abonnements/importer">Détecter depuis un relevé bancaire</LinkButton><LinkButton href="/app/abonnements/nouveau" variant="outline">Ajouter à la main</LinkButton></div>}>
+          Importe un relevé de ta banque pour repérer tes prélèvements réguliers, ou ajoute tes abonnements un par un. Tu gardes la main sur ce que tu enregistres.
         </EmptyState>
       ) : (
         <div className="space-y-4">
@@ -45,6 +47,23 @@ export default async function Page() {
               </ul>
             )}
           </Card>
+          {insights.length > 0 && (
+            <section aria-label="Conseils">
+              <h2 className="mb-2 font-display text-lg font-extrabold">À regarder de plus près</h2>
+              <ul className="space-y-2">
+                {insights.slice(0, 8).map((t, i) => (
+                  <li key={i} className="rounded-[1.25rem] border border-line bg-surface p-4">
+                    <p className="font-bold">{t.title}</p>
+                    <p className="mt-0.5 text-sm text-muted">{t.detail}</p>
+                    <p className="mt-2 flex flex-wrap gap-3 text-sm font-bold text-brand-strong">
+                      {t.href && <Link href={t.href} className="underline underline-offset-4">Comparer maintenant</Link>}
+                      <Link href={`/app/abonnements/${t.contractId}`} className="underline underline-offset-4">Voir l&apos;abonnement</Link>
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {dups.map((d) => <Notice key={d.ids.join()} tone="warn" title="Doublon possible">{d.reason}. Vérifie que tu ne paies pas deux fois le même service.</Notice>)}
           <ul className="space-y-2">
             {contracts.map((c) => (
@@ -66,7 +85,8 @@ export default async function Page() {
               <div className="mt-3"><LinkButton href="/app/premium" size="sm">Découvrir ECONOM. Plus</LinkButton></div>
             </Notice>
           )}
-          <p className="text-xs text-muted">ECONOM. ne détecte pas automatiquement tes prélèvements : seuls les abonnements que tu ajoutes ici sont pris en compte.</p>
+          <LinkButton href="/app/abonnements/importer" variant="outline" full>Détecter d&apos;autres abonnements depuis un relevé</LinkButton>
+          <p className="text-xs text-muted">Seuls les abonnements que tu ajoutes ou que tu valides après un import sont pris en compte.</p>
         </div>
       )}
     </>

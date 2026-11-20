@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Wordmark } from "@/components/logo";
+import { Symbol, Wordmark } from "@/components/logo";
 import { LinkButton } from "@/components/ui";
 import { getUser } from "@/lib/auth";
 
@@ -16,8 +16,8 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-bg/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
-        <Link href="/" aria-label="ECONOM. — accueil" className="shrink-0 py-2">
-          <Wordmark className="h-[22px] w-auto" />
+        <Link href="/" aria-label="ECONOM. — accueil" className="shrink-0 py-1">
+          <Symbol className="h-10 w-10" />
         </Link>
         <nav aria-label="Navigation principale" className="ml-4 hidden lg:flex items-center gap-1">
           {NAV.map((n) => (

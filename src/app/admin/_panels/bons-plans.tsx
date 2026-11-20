@@ -5,6 +5,7 @@ import { DEAL_CATEGORIES, dateFr } from "@/lib/format";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { archiveDeal, createDeal, rejectDeal, saveMerchant, validateDeal } from "../actions";
 import { ActionForm, SubmitButton } from "../_components/action-form";
+import { DealsFinderButton } from "../_components/deals-finder-button";
 import { Empty, LoadError, Section, smallInput, Table, Td } from "../_components/bits";
 import { addDays, adminHref, DEAL_DEFAULT_RECHECK_DAYS, DEAL_MAX_RECHECK_DAYS, DEAL_STATUSES, todayParis, type SearchParams } from "../_lib/util";
 
@@ -139,6 +140,7 @@ export async function BonsPlansPanel({ sp }: { sp: SearchParams }) {
   return (
     <>
       <PageTitle title="Bons plans locaux" subtitle="Un bon plan n'est publié qu'après vérification de sa source par un administrateur." />
+      <div className="mb-6"><DealsFinderButton /></div>
 
       {editing && (
         <Section title={`Modifier les coordonnées — ${editing.name}`} id="commerce" action={<Link href={adminHref({ tab: "bons-plans" })} className="text-sm font-bold text-brand-strong">Fermer</Link>}>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BottomNav, SideNav } from "@/components/app-nav";
 import { IconBell, IconChat } from "@/components/icons";
-import { Symbol, Wordmark } from "@/components/logo";
+import { Symbol } from "@/components/logo";
 import { isAdmin, requireUser } from "@/lib/auth";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -22,14 +22,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {/* Écran de lancement : affiché à l'ouverture de l'application, puis s'efface. */}
       <div aria-hidden className="pointer-events-none fixed inset-0 z-[90] grid place-items-center bg-[#5638F5] [animation:splash-out_.45s_ease_1.05s_forwards]">
         <div className="flex flex-col items-center gap-5">
-          <Symbol className="h-24 w-24 animate-pop [--brand:#4326d9]" />
-          <Wordmark tone="light" className="h-7 w-auto animate-rise [animation-delay:.2s] [--accent:#D8FF55]" />
+          <Symbol className="h-28 w-28 animate-pop [--brand:#4326d9] [--accent:#D8FF55]" />
           <span className="h-1.5 w-28 overflow-hidden rounded-full bg-white/20"><span className="block h-full origin-left rounded-full bg-[#D8FF55] [animation:splash-bar_.9s_ease_.1s_both]" /></span>
         </div>
       </div>
       <header className="sticky top-0 z-30 border-b border-line/70 bg-bg/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-          <Link href="/app" aria-label="ECONOM. — tableau de bord"><Wordmark className="h-5 w-auto" /></Link>
+          <Link href="/app" aria-label="ECONOM. — tableau de bord"><Symbol className="h-9 w-9" /></Link>
           <div className="flex items-center gap-1">
             <Link href="/app/assistant" aria-label="Assistant ECONOM." className="pressable grid h-11 w-11 place-items-center rounded-full hover:bg-surface-2"><IconChat /></Link>
             <Link href="/app/notifications" aria-label={unread ? `Notifications : ${unread} non lue${unread > 1 ? "s" : ""}` : "Notifications"} className="pressable relative grid h-11 w-11 place-items-center rounded-full hover:bg-surface-2">

@@ -51,3 +51,13 @@ Rien ici ne vaut avis juridique.
 - La limitation de débit s'appuie sur `x-forwarded-for` : à vérifier derrière le proxy de l'hébergeur retenu.
 - La liste des domaines d'e-mail jetables est courte ; à enrichir ou à remplacer par un service spécialisé.
 - L'éligibilité d'une box à une adresse n'est pas vérifiée : l'interface le dit à chaque résultat.
+
+## Ajouts : relevé bancaire et recherche automatique de bons plans
+
+- **Import de relevé bancaire** : fichier CSV exporté par l'utilisateur, lu en mémoire par le serveur, jamais conservé ni transmis
+  à un tiers ou à une IA. Aucun identifiant bancaire n'est demandé. Une connexion directe aux banques exigerait un prestataire
+  agréé (agrégateur de comptes DSP2, agrément ACPR) et un contrat : ce n'est pas en place.
+- **Bons plans repérés par Claude** : recherche web limitée aux sources officielles ; une offre n'est publiée automatiquement que
+  si la citation fournie est retrouvée mot pour mot sur la page source (contrôle sans IA), sinon elle attend en modération.
+  Revérification tous les 7 jours ; l'offre est retirée si la preuve disparaît. Réglage `deals_finder` (villes, activation,
+  publication automatique). À valider : conditions d'utilisation des sites consultés et mention « repéré automatiquement ».
