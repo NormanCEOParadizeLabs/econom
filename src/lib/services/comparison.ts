@@ -4,6 +4,7 @@ import { compare, eurosToCents, type CompareOutput } from "@/lib/engine";
 import { loadPublicOffers } from "@/lib/catalog";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { track } from "@/lib/analytics";
+import { qualifyReferral } from "@/lib/services/referral";
 
 const euros = z.coerce.number().min(0).max(1000);
 
@@ -73,6 +74,7 @@ export async function runComparison(body: CompareBodyT, userId: string | null): 
         net_saving_cents: best.netSavingCents, monthly_saving_cents: best.monthlyEquivalentSavingCents,
       });
     }
+    if (savedId) await qualifyReferral(userId).catch(() => {});
   }
   await track("comparison_completed", { userId, anonId: body.anonId, source: body.source, props: { category: body.category, months: body.months, results: out.results.length, saving: Boolean(out.results[0]?.isSaving) } });
   return { ...out, savedId };

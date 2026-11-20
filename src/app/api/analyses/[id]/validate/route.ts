@@ -2,6 +2,7 @@ import { z } from "zod";
 import { getUser } from "@/lib/auth";
 import { ApiError, handle, jsonOk, parseJson } from "@/lib/api";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { qualifyReferral } from "@/lib/services/referral";
 
 export const runtime = "nodejs";
 
@@ -28,5 +29,20 @@ export const POST = handle("analysis.validate", async (req: Request, ctx: { para
     .eq("user_id", user.id)
     .select("id");
   if (error || !data?.length) throw new ApiError(404, "not_found", "Analyse introuvable.");
-  return jsonOk({ ok: true });
+
+  // Économie « constatée » : la nouvelle facture validée du même fournisseur de service affiche un prix inférieur à la précédente.
+  const db = supabaseAdmin();
+  const { data: previous } = await db
+    .from("document_analyses")
+    .select("id, validated_data")
+    .eq("user_id", user.id).eq("doc_type", body.type_document).neq("id", id).not("validated_at", "is", null)
+    .order("validated_at", { ascending: false }).limit(1).maybeSingle();
+  const before = Number((previous?.validated_data as { prix_mensuel?: number } | null)?.prix_mensuel);
+  let observedCents = 0;
+  if (Number.isFinite(before) && before > body.prix_mensuel) {
+    observedCents = Math.round((before - body.prix_mensuel) * 100);
+    await db.from("realized_savings").insert({ user_id: user.id, label: `Facture ${body.fournisseur} en baisse`, monthly_cents: observedCents, kind: "observed" });
+  }
+  await qualifyReferral(user.id).catch(() => {});
+  return jsonOk({ ok: true, observedCents });
 });
