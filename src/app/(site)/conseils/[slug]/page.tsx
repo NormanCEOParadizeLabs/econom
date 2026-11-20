@@ -98,7 +98,7 @@ export default async function ArticlePage({ params }: Props) {
           Informations générales, à jour à la date de publication. Elles ne constituent pas un conseil juridique personnalisé : ton contrat et le site de ton fournisseur font foi.
         </Notice>
 
-        <div className="mt-8 flex flex-col items-start gap-5 rounded-[2rem] bg-ink p-8 text-[#F8F8F2] sm:flex-row sm:items-center">
+        <div className="mt-8 flex flex-col items-start gap-5 rounded-[2rem] bg-[#171529] p-8 text-[#F8F8F2] sm:flex-row sm:items-center">
           <div className="flex-1">
             <h2 className="font-display text-2xl font-black">Passe à la pratique.</h2>
             <p className="mt-1 text-white/75">Compare le coût total de ton forfait sur 12 ou 24 mois, sans créer de compte.</p>

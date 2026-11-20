@@ -1,26 +1,10 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconChat, IconCompare, IconDoc, IconGift, IconHelp, IconHome, IconPiggy, IconPin, IconRepeat, IconScan, IconSettings, IconShield, IconStar, IconUser } from "@/components/icons";
+import { IconHome, IconShield } from "@/components/icons";
 import { cx } from "@/components/ui";
 
-const TABS = [
-  { href: "/app", label: "Accueil", icon: IconHome, exact: true },
-  { href: "/app/comparer", label: "Comparer", icon: IconCompare },
-  { href: "/app/scanner", label: "Scanner", icon: IconScan, main: true },
-  { href: "/app/bons-plans", label: "Bons plans", icon: IconPin },
-  { href: "/app/compte", label: "Compte", icon: IconUser },
-];
-const MORE = [
-  { href: "/app/abonnements", label: "Mes abonnements", icon: IconRepeat },
-  { href: "/app/economies", label: "Mes économies", icon: IconPiggy },
-  { href: "/app/assistant", label: "Assistant", icon: IconChat },
-  { href: "/app/analyses", label: "Historique", icon: IconDoc },
-  { href: "/app/parrainage", label: "Parrainage", icon: IconGift },
-  { href: "/app/premium", label: "ECONOM. Plus", icon: IconStar },
-  { href: "/app/parametres", label: "Paramètres", icon: IconSettings },
-  { href: "/aide", label: "Centre d'aide", icon: IconHelp },
-];
+import { MORE, TABS } from "@/components/nav-links";
 
 const useActive = () => {
   const path = usePathname();
@@ -76,4 +60,3 @@ export function SideNav({ admin }: { admin: boolean }) {
   );
 }
 
-export const MORE_LINKS = MORE;

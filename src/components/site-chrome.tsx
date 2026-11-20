@@ -56,7 +56,7 @@ const FOOT = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-20 bg-ink text-[#F8F8F2] [--ink:#F8F8F2]">
+    <footer className="mt-20 bg-[#171529] text-[#F8F8F2]">
       <div className="mx-auto max-w-6xl px-4 py-12 grid gap-10 md:grid-cols-[1.3fr_repeat(3,1fr)]">
         <div>
           <Wordmark tone="light" className="h-6 w-auto" />

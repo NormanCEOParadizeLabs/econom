@@ -45,7 +45,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
           )}
         </Card>
       ) : null}
-      <Card className="mb-5 overflow-x-auto !p-0">
+      <Card tabIndex={0} role="region" aria-label="Comparaison des formules" className="mb-5 overflow-x-auto !p-0">
         <table className="w-full text-sm">
           <caption className="sr-only">Comparaison des formules Gratuit et Plus</caption>
           <thead><tr className="border-b border-line text-left"><th scope="col" className="p-3 font-bold">Fonctionnalité</th><th scope="col" className="p-3 font-bold">Gratuit</th><th scope="col" className="p-3 font-bold text-brand-strong">Plus</th></tr></thead>

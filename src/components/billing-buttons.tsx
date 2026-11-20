@@ -17,7 +17,7 @@ export function CheckoutPanel({ monthly, yearly, enabled }: { monthly: string; y
   const [consent, setConsent] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => { trackClient("premium_paywall_viewed"); }, []);
+  useEffect(() => { trackClient("premium_paywall_viewed"); trackClient("premium_viewed"); }, []);
   async function start() {
     setPending(true); setError(null);
     try {

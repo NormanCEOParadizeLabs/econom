@@ -52,7 +52,7 @@ export async function analyzeForUser(userId: string, file: { bytes: Uint8Array; 
   try {
     ({ extraction } = await extractDocument({ mime, base64: Buffer.from(file.bytes).toString("base64") }, userId));
   } catch (err) {
-    await refundQuota(userId, "ai_analysis"); // un échec technique ne consomme pas le quota
+    await refundQuota(userId, "ai_analysis", quota.source); // un échec technique ne consomme pas le quota
     if (err instanceof AiUnavailableError) throw aiErrorToApi(err);
     throw err;
   }
@@ -64,7 +64,7 @@ export async function analyzeForUser(userId: string, file: { bytes: Uint8Array; 
     .select("id")
     .single();
   if (error || !analysis) throw new ApiError(500, "storage_failed", "L'analyse n'a pas pu être enregistrée.");
-  if (!extraction.lisible) await refundQuota(userId, "ai_analysis"); // document illisible : non décompté
+  if (!extraction.lisible) await refundQuota(userId, "ai_analysis", quota.source); // document illisible : non décompté
   await db.from("profiles").update({ ai_consent_at: new Date().toISOString() }).eq("id", userId).is("ai_consent_at", null);
   await track("invoice_scan_completed", { userId, props: { readable: extraction.lisible, confidence: extraction.confiance } });
   const used = (await db.from("usage_quotas").select("used").eq("user_id", userId).eq("kind", "ai_analysis").order("period", { ascending: false }).limit(1).maybeSingle()).data?.used ?? 0;

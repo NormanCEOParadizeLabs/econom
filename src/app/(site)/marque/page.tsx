@@ -90,7 +90,7 @@ function DirectionBlock({ d }: { d: Direction }) {
           <h3 className="mt-7 text-xs font-bold uppercase tracking-wider text-muted">Logotype</h3>
           <div className="mt-2 grid grid-cols-2 gap-3">
             <div className="grid h-28 place-items-center rounded-2xl border border-line bg-surface p-4"><Wordmark className="h-7 w-auto max-w-full" /></div>
-            <div className="grid h-28 place-items-center rounded-2xl bg-ink p-4"><Wordmark tone="light" className="h-7 w-auto max-w-full" /></div>
+            <div className="grid h-28 place-items-center rounded-2xl bg-[#171529] p-4"><Wordmark tone="light" className="h-7 w-auto max-w-full" /></div>
             <div className="flex h-28 items-center justify-center gap-4 rounded-2xl border border-line bg-surface p-4">
               <Symbol className="h-16 w-16" />
               <Symbol className="h-10 w-10" />
@@ -159,11 +159,11 @@ export default function Marque() {
       <section className="bg-surface-2">
         <div className="mx-auto max-w-6xl px-4 py-14">
           <h2 className="font-display text-3xl font-black md:text-4xl">Usages du logo</h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <div className="mt-8 grid gap-4 md:grid-cols-2 [&>*]:min-w-0">
             <Card>
               <h3 className="font-display text-xl font-extrabold">Zone de protection</h3>
               <p className="mt-1.5 leading-relaxed text-muted">Laisse autour du logotype un espace vide au moins égal à la hauteur du point final. Aucun texte, aucun bord, aucune image dans cette zone.</p>
-              <div className="mt-4 grid place-items-center rounded-2xl bg-bg p-4">
+              <div className="mt-4 grid place-items-center overflow-hidden rounded-2xl bg-bg p-4">
                 <div className="border-2 border-dashed border-brand/50 p-5">
                   <Wordmark className="h-8 w-auto" />
                 </div>
@@ -180,7 +180,7 @@ export default function Marque() {
             <Card>
               <h3 className="font-display text-xl font-extrabold">Icône d&apos;application</h3>
               <p className="mt-1.5 leading-relaxed text-muted">L&apos;icône reprend le symbole sur un carré aux coins arrondis, à la couleur de marque. Ne la recadre pas : utilise la version « maskable » quand le système applique sa propre forme (rond, goutte, carré arrondi).</p>
-              <div className="mt-4 flex items-end gap-4 rounded-2xl bg-bg p-4">
+              <div className="mt-4 flex flex-wrap items-end gap-4 rounded-2xl bg-bg p-4">
                 <Symbol className="h-20 w-20" />
                 <Symbol className="h-14 w-14" />
                 <Symbol className="h-10 w-10" />

@@ -145,7 +145,7 @@ export default function Aide() {
             </p>
           </Guide>
 
-          <section id="contact" className="scroll-mt-28 mt-4 rounded-[2rem] bg-ink p-8 text-[#F8F8F2]">
+          <section id="contact" className="scroll-mt-28 mt-4 rounded-[2rem] bg-[#171529] p-8 text-[#F8F8F2]">
             <h2 className="font-display text-2xl font-black">Besoin d&apos;un coup de main ?</h2>
             <p className="mt-2 text-white/75">Regarde d&apos;abord la FAQ : la réponse y est souvent. Sinon, écris-nous.</p>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">

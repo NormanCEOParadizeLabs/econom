@@ -6,16 +6,17 @@ import { trackClient } from "@/lib/track-client";
 
 export function ReferralShare({ code, url }: { code: string; url: string }) {
   const [copied, setCopied] = useState(false);
-  const text = "Je compare mes forfaits et je suis mes abonnements avec ECONOM. Essaie, c'est gratuit :";
+  const text = "Découvre combien tu pourrais économiser sur ton forfait ou ta box. Diagnostic gratuit, sans inscription :";
   async function share() {
-    trackClient("referral_shared", { kind: "link" });
-    try {
-      if (navigator.share) return await navigator.share({ title: "ECONOM.", text, url });
-    } catch { return; }
+    if (navigator.share) {
+      trackClient("share_sheet_opened", { from: "referral" });
+      try { await navigator.share({ title: "ECONOM.", text, url }); trackClient("share_completed", { from: "referral" }); } catch {}
+      return;
+    }
     await copy();
   }
   async function copy() {
-    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2500); } catch {}
+    try { await navigator.clipboard.writeText(url); trackClient("share_link_copied", { from: "referral" }); setCopied(true); setTimeout(() => setCopied(false), 2500); } catch {}
   }
   return (
     <div className="space-y-3">
@@ -27,7 +28,12 @@ export function ReferralShare({ code, url }: { code: string; url: string }) {
         <Button onClick={share} full><IconShare width={18} height={18} /> Partager mon lien</Button>
         <Button onClick={copy} variant="outline" aria-live="polite">{copied ? "Copié !" : "Copier"}</Button>
       </div>
-      <p className="break-all rounded-2xl bg-surface-2 p-3 text-center text-xs text-muted">{url}</p>
+      <div className="flex flex-wrap justify-center gap-2 text-sm">
+        {([["WhatsApp", `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`], ["SMS", `sms:?&body=${encodeURIComponent(`${text} ${url}`)}`], ["Messenger", `fb-messenger://share/?link=${encodeURIComponent(url)}`], ["E-mail", `mailto:?body=${encodeURIComponent(`${text} ${url}`)}`]] as const).map(([label, href]) => (
+          <a key={label} href={href} target="_blank" rel="noopener noreferrer" onClick={() => trackClient("share_sheet_opened", { from: "referral", app: label })} className="rounded-full bg-surface-2 px-3 py-2 font-bold hover:bg-brand hover:text-on-brand">{label}</a>
+        ))}
+      </div>
+      <p className="break-all rounded-2xl bg-surface-2 p-3 text-center text-xs text-muted select-all">{url}</p>
     </div>
   );
 }

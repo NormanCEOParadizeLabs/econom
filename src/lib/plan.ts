@@ -36,16 +36,23 @@ export async function quotaLimit(plan: Plan, kind: QuotaKind): Promise<number> {
 }
 
 /** Réserve une unité de quota de façon atomique. */
-export async function consumeQuota(userId: string, kind: QuotaKind): Promise<{ ok: boolean; plan: Plan; limit: number }> {
+export async function consumeQuota(userId: string, kind: QuotaKind): Promise<{ ok: boolean; plan: Plan; limit: number; source: "monthly" | "bonus" }> {
   const plan = await getPlan(userId);
   const limit = await quotaLimit(plan, kind);
   const { data, error } = await supabaseAdmin().rpc("consume_quota", { p_user: userId, p_kind: kind, p_limit: limit });
   if (error) throw new Error("Quota indisponible");
-  return { ok: data === true, plan, limit };
+  if (data === true) return { ok: true, plan, limit, source: "monthly" };
+  if (kind === "ai_analysis") {
+    // Quota mensuel épuisé : on puise dans les analyses offertes par le parrainage.
+    const bonus = await supabaseAdmin().rpc("consume_bonus_analysis", { p_user: userId });
+    if (bonus.data === true) return { ok: true, plan, limit, source: "bonus" };
+  }
+  return { ok: false, plan, limit, source: "monthly" };
 }
 
-export async function refundQuota(userId: string, kind: QuotaKind) {
-  await supabaseAdmin().rpc("refund_quota", { p_user: userId, p_kind: kind });
+export async function refundQuota(userId: string, kind: QuotaKind, source: "monthly" | "bonus" = "monthly") {
+  if (source === "bonus") await supabaseAdmin().rpc("refund_bonus_analysis", { p_user: userId });
+  else await supabaseAdmin().rpc("refund_quota", { p_user: userId, p_kind: kind });
 }
 
 export async function getUsage(userId: string): Promise<Record<QuotaKind, number>> {

@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { requestPasswordReset, signIn, signUp, updatePassword, type AuthState } from "@/app/(auth)/actions";
 import { Button, Field, Input, Notice, Spinner } from "@/components/ui";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { attribution } from "@/lib/track-client";
 
 const initial: AuthState = {};
 
@@ -68,12 +69,15 @@ export function LoginForm({ next, linkError }: { next: string; linkError: boolea
 
 export function SignupForm({ referral, source }: { referral: string; source: string }) {
   const [state, action, pending] = useActionState(signUp, initial);
+  const [attr, setAttr] = useState<{ source?: string; campaign?: string }>({});
+  useEffect(() => setAttr(attribution()), []);
   if (state.info) return <Notice tone="success" title="Vérifie ta boîte mail">{state.info}</Notice>;
   return (
     <form action={action} className="space-y-4" noValidate>
       <Messages state={state} />
       <OAuthButtons next="/app/bienvenue" />
-      <input type="hidden" name="source" value={source} />
+      <input type="hidden" name="source" value={source || attr.source || ""} />
+      <input type="hidden" name="campaign" value={attr.campaign ?? ""} />
       <Field label="Prénom (facultatif)" htmlFor="name">
         <Input id="name" name="name" autoComplete="given-name" maxLength={60} />
       </Field>

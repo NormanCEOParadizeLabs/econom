@@ -10,7 +10,7 @@ import { trackClient } from "@/lib/track-client";
 
 interface Place { label: string; lat: number; lon: number }
 
-export function DealsExplorer({ defaultQuery }: { defaultQuery: string }) {
+export function DealsExplorer({ defaultQuery, publicMode = false }: { defaultQuery: string; publicMode?: boolean }) {
   const [query, setQuery] = useState(defaultQuery);
   const [place, setPlace] = useState<Place | null>(null);
   const [choices, setChoices] = useState<Place[]>([]);
@@ -111,7 +111,7 @@ export function DealsExplorer({ defaultQuery }: { defaultQuery: string }) {
           </div>
           {deals && deals.length > 0 && <DealsMap center={place} points={deals.map((d) => ({ id: d.id, lat: d.merchant.lat, lon: d.merchant.lon, label: d.merchant.name, sub: d.dealLabel }))} onSelect={setSelected} />}
           {deals && deals.length === 0 && (
-            <EmptyState icon={<IconPin />} title={total === 0 ? "Aucun bon plan vérifié pour l'instant" : "Rien de vérifié dans ce rayon"} action={<LinkButton href="/app/bons-plans/proposer" variant="outline">Proposer un bon plan</LinkButton>}>
+            <EmptyState icon={<IconPin />} title={total === 0 ? "Aucun bon plan vérifié pour l'instant" : "Rien de vérifié dans ce rayon"} action={publicMode ? undefined : <LinkButton href="/app/bons-plans/proposer" variant="outline">Proposer un bon plan</LinkButton>}>
               {total === 0
                 ? "Nous ne publions que des offres dont la source a été contrôlée. Le registre s'ouvre progressivement : plutôt aucune promotion qu'une promotion inventée."
                 : "Élargis le rayon ou change de catégorie. Nous n'affichons que des offres dont la source a été contrôlée."}
@@ -120,7 +120,7 @@ export function DealsExplorer({ defaultQuery }: { defaultQuery: string }) {
           <ul className="space-y-2">
             {deals?.map((d) => (
               <li key={d.id}>
-                <Link href={`/app/bons-plans/${d.id}`} onClick={() => trackClient("deal_viewed", { category: d.category })} className={cx("pressable flex items-center gap-3 rounded-[1.25rem] border bg-surface p-4 hover:border-brand", selected === d.id ? "border-brand ring-2 ring-brand/30" : "border-line")}>
+                <Link href={publicMode ? `/bon-plan/${d.id}` : `/app/bons-plans/${d.id}`} onClick={() => trackClient("deal_viewed", { category: d.category })} className={cx("pressable flex items-center gap-3 rounded-[1.25rem] border bg-surface p-4 hover:border-brand", selected === d.id ? "border-brand ring-2 ring-brand/30" : "border-line")}>
                   <span className="grid h-14 min-w-14 place-items-center rounded-2xl bg-accent px-2 text-center text-sm font-black leading-tight text-on-accent">{d.dealLabel}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-bold">{d.title}</span>

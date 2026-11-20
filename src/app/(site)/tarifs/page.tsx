@@ -93,7 +93,7 @@ export default function Tarifs() {
       <section className="bg-surface-2">
         <div className="mx-auto max-w-6xl px-4 py-14">
           <h2 className="font-display text-3xl font-black md:text-4xl">Le détail, ligne par ligne</h2>
-          <div className="mt-6 overflow-x-auto rounded-[1.5rem] border border-line bg-surface">
+          <div tabIndex={0} role="region" aria-label="Tableau comparatif des formules" className="mt-6 overflow-x-auto rounded-[1.5rem] border border-line bg-surface">
             <table className="w-full min-w-[34rem] text-left text-sm">
               <caption className="sr-only">Comparaison des formules Gratuit et ECONOM. Plus</caption>
               <thead>

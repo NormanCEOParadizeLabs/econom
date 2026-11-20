@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { toggleFavorite } from "@/app/app/actions";
+import { DealShareButton } from "@/components/deal-share";
+import { env } from "@/lib/env";
 import { Badge, Button, Card, Notice } from "@/components/ui";
 import { IconClock, IconExternal, IconHeart, IconPin } from "@/components/icons";
 import { requireUser } from "@/lib/auth";
@@ -46,6 +48,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       {d.conditions && <Card><h2 className="font-bold">Conditions</h2><p className="mt-1 text-sm leading-relaxed text-muted">{d.conditions}</p></Card>}
       <div className="flex flex-col gap-2 sm:flex-row">
         <a href={d.useUrl ?? d.sourceUrl} target="_blank" rel="noopener noreferrer nofollow" className="pressable inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-brand px-5 font-bold text-on-brand">{d.useUrl ? "Profiter de l'offre" : "Voir la source officielle"} <IconExternal width={18} height={18} /></a>
+        <DealShareButton url={`${env.appUrl}/bon-plan/${d.id}`} title={`${d.dealLabel} chez ${m.name}`} />
         <form action={toggleFavorite}>
           <input type="hidden" name="kind" value="deal" /><input type="hidden" name="ref_id" value={d.id} />
           <Button type="submit" variant="outline" full aria-pressed={Boolean(fav)}><IconHeart width={18} height={18} fill={fav ? "currentColor" : "none"} /> {fav ? "Dans mes favoris" : "Ajouter aux favoris"}</Button>

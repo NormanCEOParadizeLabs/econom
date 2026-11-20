@@ -11,14 +11,16 @@ export interface TestUser {
   client: SupabaseClient;
 }
 
-export async function createUser(label = "u"): Promise<TestUser> {
-  const email = `${label}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.econom.local`;
+export async function createUser(label = "u", opts: { email?: string; confirm?: boolean } = {}): Promise<TestUser> {
+  const email = opts.email ?? `${label}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.econom.local`;
   const password = "Test-" + Math.random().toString(36).slice(2) + "A1!";
-  const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+  const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: opts.confirm ?? true });
   if (error || !data.user) throw new Error("createUser: " + error?.message);
   const client = anon();
-  const { error: e2 } = await client.auth.signInWithPassword({ email, password });
-  if (e2) throw new Error("signIn: " + e2.message);
+  if (opts.confirm !== false) {
+    const { error: e2 } = await client.auth.signInWithPassword({ email, password });
+    if (e2) throw new Error("signIn: " + e2.message);
+  }
   return { id: data.user.id, email, password, client };
 }
 

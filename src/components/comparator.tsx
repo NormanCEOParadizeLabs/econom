@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { CompareOutput, ComparedOffer } from "@/lib/engine";
 import { dateFr, euro } from "@/lib/format";
-import { trackClient } from "@/lib/track-client";
+import { attribution, trackClient, useExperiment } from "@/lib/track-client";
+import { InviteButton, SavingsCardStudio } from "@/components/savings-card";
+import type { BestSummary } from "@/lib/services/comparison";
 import { Badge, Button, Card, EmptyState, Field, Input, LinkButton, Notice, Select, Spinner, Toggle, cx } from "@/components/ui";
 import { IconArrow, IconCheck, IconClock, IconCompare, IconExternal, IconX } from "@/components/icons";
 
@@ -16,7 +18,25 @@ export interface ComparatorInitial {
 }
 
 const NETWORKS = ["Orange", "SFR", "Bouygues Telecom", "Free"] as const;
-type Result = CompareOutput & { savedId: string | null };
+type Result = CompareOutput & { savedId: string | null; best: BestSummary | null };
+
+/** Compteur animé jusqu'au montant réel calculé (aucun délai artificiel : l'animation dure moins d'une seconde). */
+function CountUp({ cents, className }: { cents: number; className?: string }) {
+  const [v, setV] = useState(cents);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return setV(cents);
+    const t0 = performance.now();
+    let raf = 0;
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - t0) / 900);
+      setV(Math.round(cents * (1 - Math.pow(1 - k, 3))));
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [cents]);
+  return <span className={className} aria-label={euro(cents)}><span aria-hidden>{euro(v)}</span></span>;
+}
 
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
@@ -33,7 +53,7 @@ function OfferCard({ r, rank, category }: { r: ComparedOffer; rank: number; cate
     ? [o.dataGb !== null && `${o.dataGb} Go`, o.fiveG ? "5G" : "4G", o.roamingGb ? `${o.roamingGb} Go UE` : null, o.hostNetwork && `Réseau ${o.hostNetwork}`, o.commitmentMonths ? `Engagement ${o.commitmentMonths} mois` : "Sans engagement"]
     : [o.technology === "fibre" ? "Fibre" : o.technology?.toUpperCase(), o.downloadMbps && `${o.downloadMbps >= 1000 ? `${o.downloadMbps / 1000} Gb/s` : `${o.downloadMbps} Mb/s`} ↓`, o.hasTv && "TV incluse", o.hasPhone && "Téléphone fixe", o.commitmentMonths ? `Engagement ${o.commitmentMonths} mois` : "Sans engagement"];
   return (
-    <Card as="article" className={cx("animate-rise", rank === 0 && r.isSaving && "border-2 border-brand shadow-xl shadow-brand/10")} aria-label={`${o.provider} ${o.name}`}>
+    <Card as="article" id={rank === 0 ? "meilleure-offre" : undefined} className={cx("animate-rise scroll-mt-24", rank === 0 && r.isSaving && "border-2 border-brand shadow-xl shadow-brand/10")} aria-label={`${o.provider} ${o.name}`}>
       <div className="flex flex-wrap items-center gap-2">
         {rank === 0 && r.isSaving && <Badge tone="brand">Meilleure économie nette</Badge>}
         {o.isPartner && <Badge tone="warn">Partenaire commercial</Badge>}
@@ -96,7 +116,10 @@ function OfferCard({ r, rank, category }: { r: ComparedOffer; rank: number; cate
   );
 }
 
-export function Comparator({ category, initial = {}, loggedIn }: { category: Category; initial?: ComparatorInitial; loggedIn: boolean }) {
+export function Comparator({ category, initial = {}, loggedIn, shareLink }: { category: Category; initial?: ComparatorInitial; loggedIn: boolean; shareLink: string }) {
+  const [studio, setStudio] = useState(false);
+  const shareCta = useExperiment("result_share_cta", { key: "partager", label: "Partager mon résultat" });
+  const invitePos = useExperiment("result_invite_position", { key: "hero", label: "" });
   const uid = useId();
   const resultsRef = useRef<HTMLDivElement>(null);
   const [months, setMonths] = useState<12 | 24>(12);
@@ -135,7 +158,7 @@ export function Comparator({ category, initial = {}, loggedIn }: { category: Cat
       currentMonthlyEuros: price,
       exitFeeEuros: engaged ? num("exitFee") ?? 0 : 0,
       priceChange: priceChange && num("pcPrice") !== undefined ? { afterMonths: Math.round(num("pcMonths") ?? 0), newMonthlyEuros: num("pcPrice") } : null,
-      needs, save: loggedIn,
+      needs, save: loggedIn, ...attribution(),
     };
     try {
       const res = await fetch("/api/compare", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -256,25 +279,61 @@ export function Comparator({ category, initial = {}, loggedIn }: { category: Cat
       <div ref={resultsRef} aria-live="polite" className="scroll-mt-24 space-y-4">
         {result && (
           <>
-            <div className="rounded-[1.5rem] bg-ink p-5 text-[#F8F8F2]">
-              {savings.length > 0 ? (
-                <>
-                  <p className="text-sm font-bold text-white/70">Économie nette potentielle sur {result.months} mois</p>
-                  <p className="num text-5xl font-black text-[#D8FF55] animate-pop">{euro(savings[0].netSavingCents)}</p>
-                  <p className="mt-1 text-sm text-white/80">avec {savings[0].offer.provider} {savings[0].offer.name}, frais inclus. Estimation à partir de tes informations : elle n&apos;est pas garantie.</p>
-                </>
-              ) : result.results.length > 0 ? (
-                <>
-                  <p className="font-display text-2xl font-black">Ton offre actuelle tient la route.</p>
-                  <p className="mt-1 text-sm text-white/80">Aucune offre vérifiée compatible avec tes besoins ne te ferait économiser sur {result.months} mois, frais inclus. Rien à changer pour l&apos;instant.</p>
-                </>
-              ) : (
-                <>
-                  <p className="font-display text-2xl font-black">Aucune offre compatible.</p>
-                  <p className="mt-1 text-sm text-white/80">Aucune offre vérifiée du catalogue ne correspond à tous tes critères. Essaie d&apos;en assouplir un, ou reviens après la prochaine mise à jour.</p>
-                </>
-              )}
-            </div>
+            {result.best && savings[0] ? (
+              <section aria-label="Ton résultat" className="on-hero relative overflow-hidden rounded-[2rem] bg-hero p-5 text-white animate-rise">
+                <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-accent/25 blur-2xl" />
+                <p className="relative text-sm font-bold text-white/80">Économie potentielle estimée</p>
+                <div className="relative mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                  <div className="rounded-2xl bg-white/10 p-3">
+                    <p className="text-xs font-bold text-white/70">AVANT</p>
+                    <p className="num text-2xl font-black line-through decoration-2 decoration-white/60 sm:text-3xl">{euro(result.best.beforeMonthlyCents)}</p>
+                    <p className="text-xs text-white/70">par mois</p>
+                  </div>
+                  <IconArrow className="text-accent" />
+                  <div className="rounded-2xl bg-accent p-3 text-on-accent animate-pop">
+                    <p className="text-xs font-bold">APRÈS</p>
+                    <p className="num text-2xl font-black sm:text-3xl">{euro(result.best.afterMonthlyCents)}</p>
+                    <p className="text-xs font-semibold">{result.best.afterPromoCents ? `puis ${euro(result.best.afterPromoCents)}` : "par mois"}</p>
+                  </div>
+                </div>
+                <p className="relative mt-5 text-sm font-bold text-white/80">Soit, frais inclus, environ</p>
+                <p className="relative"><CountUp cents={savings[0].monthlyEquivalentSavingCents} className="num text-6xl font-black text-accent" /><span className="ml-2 text-lg font-bold">de moins par mois</span></p>
+                <dl className="relative mt-4 grid grid-cols-2 gap-2">
+                  {([[12, result.best.net12Cents], [24, result.best.net24Cents]] as const).map(([m, cents]) => (
+                    <div key={m} className={cx("rounded-2xl p-3", result.months === m ? "bg-white/20 ring-2 ring-accent" : "bg-white/10")}>
+                      <dt className="text-xs font-bold text-white/75">Économie nette sur {m} mois</dt>
+                      <dd className="num text-xl font-black">{cents > 0 ? euro(cents) : `aucune (${euro(cents)})`}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="relative mt-3 text-xs text-white/75">Avec {savings[0].offer.provider} {savings[0].offer.name}, offre vérifiée le {dateFr(savings[0].offer.verifiedAt)}. Estimation à partir de tes informations : elle n&apos;est pas garantie.</p>
+                <div className="relative mt-5 flex flex-col gap-2">
+                  <a href="#meilleure-offre" className="pressable inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-accent px-6 font-bold text-on-accent">Voir comment économiser <IconArrow width={18} height={18} /></a>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Button type="button" variant="light" onClick={() => setStudio(true)}>{shareCta.label}</Button>
+                    {invitePos.key === "hero" && <InviteButton link={shareLink} variant="light" />}
+                  </div>
+                </div>
+              </section>
+            ) : (
+              <div className="rounded-[1.5rem] bg-[#171529] p-5 text-[#F8F8F2]">
+                {result.results.length > 0 ? (
+                  <>
+                    <p className="font-display text-2xl font-black">Ton offre actuelle tient la route.</p>
+                    <p className="mt-1 text-sm text-white/80">Aucune offre vérifiée compatible avec tes besoins ne te ferait économiser sur {result.months} mois, frais inclus. Rien à changer pour l&apos;instant.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-display text-2xl font-black">Aucune offre compatible.</p>
+                    <p className="mt-1 text-sm text-white/80">Aucune offre vérifiée du catalogue ne correspond à tous tes critères. Essaie d&apos;en assouplir un, ou reviens après la prochaine mise à jour.</p>
+                  </>
+                )}
+                <div className="mt-4"><InviteButton link={shareLink} variant="light" label="Proposer le test à un proche" /></div>
+              </div>
+            )}
+            {studio && result.best && savings[0] && (
+              <SavingsCardStudio onClose={() => setStudio(false)} data={{ status: "potential", monthlyCents: savings[0].monthlyEquivalentSavingCents, yearlyCents: Math.max(0, result.best.net12Cents), beforeCents: result.best.beforeMonthlyCents, afterCents: result.best.afterMonthlyCents, link: shareLink }} />
+            )}
             {!loggedIn && result.results.length > 0 && (
               <Notice title="Garde ce résultat">
                 Crée un compte gratuit pour enregistrer cette comparaison et suivre ton économie. Tes résultats restent visibles ici sans compte.
@@ -300,6 +359,7 @@ export function Comparator({ category, initial = {}, loggedIn }: { category: Cat
                 </ul>
               </details>
             )}
+            {invitePos.key === "after_offers" && savings.length > 0 && <InviteButton link={shareLink} full />}
             <Notice title="Comment ces offres sont classées">
               {result.rankingCriteria} Le catalogue ne couvre pas toutes les offres du marché : il ne contient que celles vérifiées sur le site officiel du fournisseur. <Link href="/comment-ca-marche" className="font-bold underline underline-offset-4">Notre méthode</Link>
             </Notice>

@@ -30,7 +30,7 @@ export default async function Page() {
         </EmptyState>
       ) : (
         <div className="space-y-4">
-          <Card className="bg-ink !border-0 text-[#F8F8F2]">
+          <Card className="bg-[#171529] !border-0 text-[#F8F8F2]">
             <p className="text-sm font-bold text-white/70">Total de tes dépenses récurrentes suivies</p>
             <p className="num text-5xl font-black text-[#D8FF55]">{euro(monthly)}<span className="text-lg text-white/80"> /mois</span></p>
             <p className="text-sm text-white/75">soit {euro(monthly * 12)} par an</p>

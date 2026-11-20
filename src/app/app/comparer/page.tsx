@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Comparator } from "@/components/comparator";
+import { shareLinkFor } from "@/lib/share-link";
 import { PageTitle, cx } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Comparer" };
 
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
+  const shareLink = await shareLinkFor();
   const category = sp.type === "internet" ? "internet" : "mobile";
   const clean = (v?: string, max = 100) => (v ? v.slice(0, max) : undefined);
   return (
@@ -17,7 +19,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
           <Link key={k} href={href} role="tab" aria-selected={category === k} className={cx("grid min-h-11 place-items-center rounded-full", category === k ? "bg-surface shadow" : "text-muted")}>{label}</Link>
         ))}
       </div>
-      <Comparator key={category} category={category} loggedIn initial={{ provider: clean(sp.fournisseur, 60), plan: clean(sp.offre), price: clean(sp.prix, 10), dataGb: clean(sp.data, 8) }} />
+      <Comparator shareLink={shareLink} key={category} category={category} loggedIn initial={{ provider: clean(sp.fournisseur, 60), plan: clean(sp.offre), price: clean(sp.prix, 10), dataGb: clean(sp.data, 8) }} />
     </>
   );
 }

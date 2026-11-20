@@ -42,7 +42,7 @@ export default async function Home() {
         <div aria-hidden className="pointer-events-none absolute -left-32 bottom-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div className="relative mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-12 md:grid-cols-[1.15fr_.85fr] md:items-center md:pt-20 md:pb-24">
           <div className="stagger">
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1.5 text-sm font-bold">
+            <p className="inline-flex items-center gap-2 rounded-full bg-black/25 px-3 py-1.5 text-sm font-bold">
               <IconBolt width={16} height={16} className="text-accent" /> L&apos;appli française du pouvoir d&apos;achat
             </p>
             <h1 className="mt-5 font-display text-[clamp(2.7rem,9vw,5.2rem)] font-black leading-[0.95]">
@@ -54,7 +54,7 @@ export default async function Home() {
               ECONOM. identifie les dépenses sur lesquelles tu pourrais économiser, compare les offres adaptées à tes besoins et t&apos;accompagne pour garder davantage d&apos;argent chaque mois.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <LinkButton href="/comparateur/mobile" variant="accent" size="lg">Comparer mon forfait — sans compte</LinkButton>
+              <LinkButton href="/diagnostic" variant="accent" size="lg">Calculer mes économies — sans compte</LinkButton>
               <LinkButton href="/inscription" variant="light" size="lg">Créer mon compte gratuit</LinkButton>
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/85">
@@ -81,7 +81,7 @@ export default async function Home() {
 
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="font-display text-3xl md:text-4xl font-black max-w-2xl">Six outils. Une seule appli. Zéro prise de tête.</h2>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {PILLARS.map((p) => (
             <Card as="article" key={p.title} className="pressable hover:-translate-y-1 hover:shadow-xl hover:shadow-brand/10">
               <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand text-on-brand"><p.icon /></div>
@@ -89,7 +89,7 @@ export default async function Home() {
               <p className="mt-1.5 text-muted leading-relaxed">{p.text}</p>
             </Card>
           ))}
-        </ul>
+        </div>
       </section>
 
       <section className="bg-surface-2">
@@ -149,7 +149,7 @@ export default async function Home() {
             </div>
           ))}
         </div>
-        <div className="mt-10 rounded-[2rem] bg-ink p-8 md:p-12 text-[#F8F8F2] flex flex-col md:flex-row md:items-center gap-6">
+        <div className="mt-10 rounded-[2rem] bg-[#171529] p-8 md:p-12 text-[#F8F8F2] flex flex-col md:flex-row md:items-center gap-6">
           <div className="flex-1">
             <p className="inline-flex items-center gap-2 text-accent font-bold"><IconShield width={18} height={18} /> Tes données restent les tiennes</p>
             <h2 className="mt-2 font-display text-3xl font-black">Tes factures ne sont pas conservées.</h2>

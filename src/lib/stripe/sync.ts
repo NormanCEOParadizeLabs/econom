@@ -73,7 +73,10 @@ export async function applySubscription(sub: Stripe.Subscription, stripeEventId:
   if (row?.status !== status) {
     await db.from("subscription_events").insert({ user_id: userId, stripe_event_id: stripeEventId, type: eventType, from_status: row?.status ?? "free", to_status: status });
     const wasEntitled = ENTITLED.has((row?.status ?? "free") as BillingStatus);
-    if (!wasEntitled && ENTITLED.has(status)) await track("subscription_activated", { userId, props: { interval: patch.billing_interval ?? "?" } });
+    if (!wasEntitled && ENTITLED.has(status)) {
+      await track("subscription_activated", { userId, props: { interval: patch.billing_interval ?? "?" } });
+      await track("premium_converted", { userId, props: { interval: patch.billing_interval ?? "?" } });
+    }
     if (wasEntitled && ended) await track("subscription_cancelled", { userId });
   }
   return true;

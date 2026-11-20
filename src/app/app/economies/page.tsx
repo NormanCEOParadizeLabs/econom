@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { setOpportunityStatus, deleteRealizedSaving } from "@/app/app/actions";
-import { ShareCard } from "@/components/share-card";
+import { ShareSavingsButton } from "@/components/share-savings-button";
+import { shareLinkFor } from "@/lib/share-link";
 import { AddSavingForm } from "@/components/small-forms";
 import { Badge, Button, Card, EmptyState, LinkButton, Notice, PageTitle } from "@/components/ui";
 import { IconPiggy, IconX } from "@/components/icons";
@@ -22,6 +23,7 @@ function Step({ id, status, label, variant = "primary" }: { id: string; status: 
 export default async function Page() {
   await requireUser();
   const supabase = await supabaseServer();
+  const link = await shareLinkFor();
   const [{ data: opps }, { data: realized }] = await Promise.all([
     supabase.from("saving_opportunities").select("id, title, category, months, net_saving_cents, monthly_saving_cents, status, created_at, offers(url)").neq("status", "dismissed").order("created_at", { ascending: false }),
     supabase.from("realized_savings").select("id, label, monthly_cents, kind, started_on").order("created_at", { ascending: false }),
@@ -54,7 +56,7 @@ export default async function Page() {
       {realMonthly > 0 && (
         <Card className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <div><p className="font-bold">Tu gardes {euro(realMonthly)} de plus chaque mois</p><p className="text-sm text-muted">soit {euro(realMonthly * 12)} par an. Ta carte ne contient que ce montant, aucune donnée personnelle.</p></div>
-          <ShareCard monthlyCents={realMonthly} />
+          <ShareSavingsButton data={{ status: "realized", monthlyCents: realMonthly, yearlyCents: realMonthly * 12, link }} />
         </Card>
       )}
 
@@ -78,6 +80,7 @@ export default async function Page() {
                     <>
                       {url && <a href={url} target="_blank" rel="noopener noreferrer nofollow" className="pressable inline-flex min-h-10 items-center rounded-full bg-brand px-4 text-sm font-bold text-on-brand">Voir l&apos;offre</a>}
                       <Step id={o.id} status="initiated" label="J'ai lancé le changement" variant="outline" />
+                      {o.net_saving_cents > 0 && <ShareSavingsButton variant="outline" label="Partager" data={{ status: "potential", monthlyCents: o.monthly_saving_cents, yearlyCents: Math.round((o.net_saving_cents / o.months) * 12), link }} />}
                       <Step id={o.id} status="dismissed" label="Pas intéressé" variant="ghost" />
                     </>
                   ) : (

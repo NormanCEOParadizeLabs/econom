@@ -11,7 +11,7 @@ const VARIANTS: Record<Variant, string> = {
   outline: "border-2 border-ink/15 text-ink hover:border-brand hover:text-brand-strong bg-surface",
   ghost: "text-brand-strong hover:bg-surface-2",
   danger: "bg-danger text-white hover:brightness-95",
-  light: "bg-white/15 text-white hover:bg-white/25 border border-white/25",
+  light: "bg-black/25 text-white hover:bg-black/35 border border-white/30",
 };
 const SIZES = { md: "min-h-12 px-5 text-[15px]", lg: "min-h-14 px-7 text-base", sm: "min-h-10 px-4 text-sm" };
 

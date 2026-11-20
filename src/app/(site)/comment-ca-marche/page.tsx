@@ -178,7 +178,7 @@ export default function CommentCaMarche() {
             </div>
           ))}
         </div>
-        <div className="mt-10 flex flex-col items-start gap-6 rounded-[2rem] bg-ink p-8 text-[#F8F8F2] md:flex-row md:items-center md:p-12">
+        <div className="mt-10 flex flex-col items-start gap-6 rounded-[2rem] bg-[#171529] p-8 text-[#F8F8F2] md:flex-row md:items-center md:p-12">
           <div className="flex-1">
             <h2 className="font-display text-3xl font-black">Essaie avec ton forfait actuel.</h2>
             <p className="mt-2 max-w-xl text-white/75">Le comparateur fonctionne sans compte. Deux minutes suffisent pour voir si ça vaut le coup de changer.</p>

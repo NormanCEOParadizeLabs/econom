@@ -1,5 +1,5 @@
 "use server";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -7,7 +7,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
 import { ApiError, rateLimit } from "@/lib/api";
 import { track } from "@/lib/analytics";
-import { claimReferral } from "@/lib/services/referral";
+import { REF_COOKIE, claimReferral } from "@/lib/services/referral";
 
 export interface AuthState {
   error?: string;
@@ -62,8 +62,9 @@ export async function signUp(_prev: AuthState, form: FormData): Promise<AuthStat
       terms: z.literal("on", { error: "Tu dois accepter les conditions pour créer un compte." }),
       referral: z.string().trim().max(12).optional(),
       source: z.string().trim().max(40).optional(),
+      campaign: z.string().trim().max(60).optional(),
     })
-    .safeParse(Object.fromEntries(["email", "password", "name", "terms", "referral", "source"].map((k) => [k, form.get(k) ?? undefined])));
+    .safeParse(Object.fromEntries(["email", "password", "name", "terms", "referral", "source", "campaign"].map((k) => [k, form.get(k) ?? undefined])));
   if (!parsed.success) {
     const fields: Record<string, string> = {};
     for (const i of parsed.error.issues) fields[String(i.path[0])] ??= i.message;
@@ -89,8 +90,15 @@ export async function signUp(_prev: AuthState, form: FormData): Promise<AuthStat
   if (!user || (user.identities && user.identities.length === 0)) {
     return { info: "Si cette adresse n'a pas encore de compte, un e-mail de confirmation vient d'être envoyé." };
   }
-  if (parsed.data.referral) await claimReferral(user.id, parsed.data.email, parsed.data.referral);
-  await track("account_created", { userId: user.id, source: parsed.data.source ?? null, props: { referred: Boolean(parsed.data.referral) } });
+  // Parrainage : code saisi, sinon lien /r/CODE ouvert auparavant (cookie d'attribution).
+  const jar = await cookies();
+  const refCode = parsed.data.referral || jar.get(REF_COOKIE)?.value || "";
+  const claim = refCode ? await claimReferral(user.id, parsed.data.email, refCode, ip) : null;
+  if (jar.get(REF_COOKIE)) jar.delete(REF_COOKIE);
+  const source = parsed.data.source || (claim === "claimed" ? "parrainage" : null);
+  const campaign = parsed.data.campaign?.replace(/[^a-z0-9-]/gi, "").toLowerCase() || null;
+  if (source || campaign) await supabaseAdmin().from("profiles").update({ acquisition_source: source, acquisition_campaign: campaign }).eq("id", user.id);
+  await track("account_created", { userId: user.id, source, campaign, props: { referred: claim === "claimed" } });
   if (!data.session) return { info: "Presque fini : clique sur le lien que nous venons d'envoyer à ton adresse e-mail pour activer ton compte." };
   await supabaseAdmin().from("login_history").insert({ user_id: user.id, device });
   redirect("/app/bienvenue");

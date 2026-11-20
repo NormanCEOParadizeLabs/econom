@@ -148,7 +148,7 @@ export default function FaqPage() {
           </section>
         ))}
 
-        <div className="rounded-[2rem] bg-ink p-8 text-[#F8F8F2]">
+        <div className="rounded-[2rem] bg-[#171529] p-8 text-[#F8F8F2]">
           <h2 className="font-display text-2xl font-black">Tu n&apos;as pas trouvé ta réponse ?</h2>
           <p className="mt-2 text-white/75">
             Le centre d&apos;aide détaille les démarches pas à pas. Tu peux aussi lire <Link href="/comment-ca-marche#classement" className="underline underline-offset-4">comment on classe les offres</Link>.

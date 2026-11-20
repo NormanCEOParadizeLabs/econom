@@ -11,7 +11,7 @@ export const getMe = cache(async () => {
   const supabase = await supabaseServer();
   const [{ data: profile }, { data: sub }, plan, usage, limits] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase.from("subscriptions").select("status, billing_interval, current_period_end, cancel_at_period_end, bonus_until, stripe_customer_id").eq("user_id", user.id).single(),
+    supabase.from("subscriptions").select("status, billing_interval, current_period_end, cancel_at_period_end, bonus_until, bonus_analyses, advanced_report, stripe_customer_id").eq("user_id", user.id).single(),
     getPlan(user.id),
     getUsage(user.id),
     getLimits(),
@@ -19,7 +19,7 @@ export const getMe = cache(async () => {
   return {
     user, profile, sub, plan, usage, limits,
     quota: {
-      analyses: { used: usage.ai_analysis, limit: plan === "plus" ? limits.plus_ai_analyses : limits.free_ai_analyses },
+      analyses: { used: usage.ai_analysis, limit: plan === "plus" ? limits.plus_ai_analyses : limits.free_ai_analyses, bonus: sub?.bonus_analyses ?? 0 },
       chat: { used: usage.ai_chat, limit: plan === "plus" ? limits.plus_ai_chat : limits.free_ai_chat },
     },
   };

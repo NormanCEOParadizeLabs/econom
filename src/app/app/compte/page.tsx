@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signOut } from "@/app/(auth)/actions";
 import { DeleteAccount } from "@/components/account-danger";
-import { MORE_LINKS } from "@/components/app-nav";
+import { MORE as MORE_LINKS } from "@/components/nav-links";
 import { PortalButton } from "@/components/billing-buttons";
 import { ProfileForm } from "@/components/small-forms";
 import { Badge, Button, Card, LinkButton, Notice, PageTitle } from "@/components/ui";

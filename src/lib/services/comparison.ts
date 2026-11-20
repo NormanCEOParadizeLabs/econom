@@ -32,11 +32,22 @@ export const CompareBody = z.object({
   save: z.boolean().default(false),
   anonId: z.string().max(40).optional(),
   source: z.string().max(40).optional(),
+  campaign: z.string().max(60).optional(),
 });
 export type CompareBodyT = z.infer<typeof CompareBody>;
 
-export async function runComparison(body: CompareBodyT, userId: string | null): Promise<CompareOutput & { savedId: string | null }> {
-  const out = compare({
+export interface BestSummary {
+  offerId: string;
+  beforeMonthlyCents: number;
+  afterMonthlyCents: number;
+  afterPromoCents: number | null;
+  net12Cents: number;
+  net24Cents: number;
+}
+
+export async function runComparison(body: CompareBodyT, userId: string | null): Promise<CompareOutput & { savedId: string | null; best: BestSummary | null }> {
+  const offers = await loadPublicOffers(body.category);
+  const input = {
     category: body.category,
     months: body.months,
     current: {
@@ -45,8 +56,21 @@ export async function runComparison(body: CompareBodyT, userId: string | null): 
       priceChange: body.priceChange ? { afterMonths: body.priceChange.afterMonths, newMonthlyCents: eurosToCents(body.priceChange.newMonthlyEuros) } : null,
     },
     needs: body.needs,
-    offers: await loadPublicOffers(body.category),
-  });
+    offers,
+  };
+  const out = compare(input);
+  // Résumé « avant / après » de la meilleure offre, calculé par le moteur sur les deux horizons.
+  let best: BestSummary | null = null;
+  const top = out.results[0];
+  if (top?.isSaving) {
+    const other = compare({ ...input, months: body.months === 12 ? 24 : 12 }).results.find((r) => r.offer.id === top.offer.id);
+    const net = { [top.months]: top.netSavingCents, [other?.months ?? 0]: other?.netSavingCents ?? 0 } as Record<number, number>;
+    best = {
+      offerId: top.offer.id, beforeMonthlyCents: input.current.monthlyCents, afterMonthlyCents: top.offer.monthlyCents,
+      afterPromoCents: top.offer.introMonths > 0 && top.offer.afterCents !== top.offer.monthlyCents ? top.offer.afterCents : null,
+      net12Cents: net[12] ?? 0, net24Cents: net[24] ?? 0,
+    };
+  }
 
   let savedId: string | null = null;
   if (userId && body.save) {
@@ -74,8 +98,12 @@ export async function runComparison(body: CompareBodyT, userId: string | null): 
         net_saving_cents: best.netSavingCents, monthly_saving_cents: best.monthlyEquivalentSavingCents,
       });
     }
-    if (savedId) await qualifyReferral(userId).catch(() => {});
+    // Un diagnostic valide (au moins une offre comparée) peut qualifier le parrainage du compte.
+    if (savedId && out.results.length > 0) await qualifyReferral(userId).catch(() => {});
   }
-  await track("comparison_completed", { userId, anonId: body.anonId, source: body.source, props: { category: body.category, months: body.months, results: out.results.length, saving: Boolean(out.results[0]?.isSaving) } });
-  return { ...out, savedId };
+  const meta = { userId, source: body.source, campaign: body.campaign };
+  await track("comparison_completed", { ...meta, props: { category: body.category, months: body.months, results: out.results.length, saving: Boolean(top?.isSaving) } });
+  if (out.results.length > 0) await track("diagnostic_completed", { ...meta, props: { category: body.category } });
+  if (top?.isSaving) await track("saving_opportunity_found", { ...meta, props: { category: body.category } });
+  return { ...out, savedId, best };
 }
