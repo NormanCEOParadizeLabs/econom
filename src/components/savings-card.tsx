@@ -54,107 +54,115 @@ function draw(c: HTMLCanvasElement, d: CardData, style: StyleKey, format: Format
   const wide = format === "wide";
   const u = wide ? H / 630 : W / 1080; // unité
   const pad = (wide ? 60 : 84) * u;
-  const font = (weight: number, px: number) => `${weight} ${Math.round(px * u)}px ${family}`;
-  g.fillStyle = p.bg; g.fillRect(0, 0, W, H);
-  if (style === "volt") {
-    g.fillStyle = "rgba(216,255,85,.20)"; g.beginPath(); g.arc(W - 60 * u, 200 * u, 380 * u, 0, 7); g.fill();
-    g.fillStyle = "rgba(255,255,255,.07)"; g.beginPath(); g.arc(40 * u, H - 160 * u, 340 * u, 0, 7); g.fill();
-  } else if (style === "beforeafter") {
-    g.fillStyle = "rgba(86,56,245,.55)"; g.beginPath(); g.arc(W + 40 * u, H * 0.5, 460 * u, 0, 7); g.fill();
-  }
-  g.textBaseline = "top";
-
-  // Logotype
-  const lw = (wide ? 240 : 330) * u;
-  const s = lw / LOGO.viewBox[0];
-  g.save(); g.translate(pad, pad); g.scale(s, s);
-  g.fillStyle = p.logo; g.fill(new Path2D(LOGO.word));
-  g.fillStyle = p.dot; g.fill(new Path2D(LOGO.dot));
-  g.restore();
-
-  // QR code + lien (bas de carte)
+  let k = 1; // facteur d'échelle du contenu, réduit jusqu'à ce que tout tienne dans le format
+  const font = (weight: number, px: number) => `${weight} ${Math.round(px * u * k)}px ${family}`;
+  const fixed = (weight: number, px: number) => `${weight} ${Math.round(px * u)}px ${family}`;
   const qr = QRCode.create(d.link, { errorCorrectionLevel: "M" });
   const n = qr.modules.size;
   const qs = (wide ? 150 : 190) * u;
-  const qx = W - pad - qs, qy = H - pad - qs;
-  g.fillStyle = p.qrBg; g.beginPath(); g.roundRect(qx - 14 * u, qy - 14 * u, qs + 28 * u, qs + 28 * u, 22 * u); g.fill();
-  g.fillStyle = "#171529";
-  const cell = qs / n;
-  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (qr.modules.get(y, x)) g.fillRect(qx + x * cell, qy + y * cell, cell + 0.6, cell + 0.6);
-  g.fillStyle = p.sub; g.font = font(700, wide ? 22 : 30);
-  const host = d.link.replace(/^https?:\/\//, "").replace(/\?.*$/, "");
-  g.fillText(host.length > 34 ? host.slice(0, 33) + "…" : host, pad, H - pad - (wide ? 30 : 40) * u);
-  g.fillStyle = style === "minimal" ? "#5638F5" : "#D8FF55"; g.font = font(800, wide ? 26 : 38);
-  g.fillText("Ton argent. Tes règles.", pad, H - pad - (wide ? 70 : 96) * u);
-
-  const amount = eurosDown(d.monthlyCents * progress);
+  const amountLabel = eurosDown(d.monthlyCents * progress);
   const statusLabel = d.status === "realized" ? "ÉCONOMIE RÉALISÉE" : "ÉCONOMIE POTENTIELLE ESTIMÉE";
   const lead = d.status === "realized" ? "J'économise" : "J'ai découvert que je pouvais économiser";
-  const maxW = (wide ? W - pad * 2 - qs - 60 * u : W - pad * 2);
-  let y = pad + (wide ? 70 : format === "story" ? 330 : format === "post" ? 190 : 150) * u;
-
-  // Pastille de statut : potentielle ou réalisée, toujours indiquée.
-  g.font = font(800, wide ? 20 : 28);
-  const sw = g.measureText(statusLabel).width + 36 * u;
-  g.fillStyle = style === "minimal" ? "#5638F5" : "rgba(255,255,255,.16)";
-  g.beginPath(); g.roundRect(pad, y, sw, (wide ? 40 : 54) * u, 30 * u); g.fill();
-  g.fillStyle = "#F8F8F2"; g.fillText(statusLabel, pad + 18 * u, y + (wide ? 10 : 13) * u);
-  y += (wide ? 62 : 96) * u;
-
-  if (style === "beforeafter" && d.beforeCents && d.afterCents) {
-    const bw = wide ? (maxW - 30 * u) / 2 : maxW;
-    const bh = (wide ? 190 : 250) * u;
-    const blocks: [string, string, boolean][] = [["AVANT", price(d.beforeCents), false], ["APRÈS", price(d.afterCents), true]];
-    blocks.forEach(([label, value, after], i) => {
-      const bx = wide ? pad + i * (bw + 30 * u) : pad;
-      const by = wide ? y : y + i * (bh + 26 * u);
-      g.fillStyle = after ? "#D8FF55" : "rgba(255,255,255,.10)";
-      g.beginPath(); g.roundRect(bx, by, bw, bh, 36 * u); g.fill();
-      g.fillStyle = after ? "#171529" : "rgba(248,248,242,.7)"; g.font = font(800, wide ? 24 : 34);
-      g.fillText(label, bx + 30 * u, by + 26 * u);
-      g.fillStyle = after ? "#171529" : "#F8F8F2"; g.font = font(900, wide ? 84 : 124);
-      g.fillText(value, bx + 30 * u, by + (wide ? 66 : 86) * u, bw - 60 * u);
-      const tw = Math.min(g.measureText(value).width, bw - 60 * u);
-      if (!after) { g.fillRect(bx + 24 * u, by + (wide ? 112 : 150) * u, tw + 12 * u, 8 * u); }
-      g.font = font(700, wide ? 22 : 32); g.fillStyle = after ? "#171529" : "rgba(248,248,242,.7)";
-      g.fillText("par mois", bx + 36 * u + tw, by + (wide ? 128 : 172) * u);
-    });
-    y += wide ? bh + 26 * u : 2 * bh + 60 * u;
-    g.fillStyle = p.text; g.font = font(900, wide ? 36 : 58);
-    g.fillText(`${amount} de moins par mois*`, pad, y, maxW);
-    y += (wide ? 48 : 80) * u;
-  } else {
-    g.fillStyle = p.text; g.font = font(style === "minimal" ? 700 : 900, wide ? 38 : style === "minimal" ? 52 : 74);
-    for (const line of wrap(g, lead, maxW)) { g.fillText(line, pad, y); y += (wide ? 46 : style === "minimal" ? 64 : 88) * u; }
-    y += 14 * u;
-    g.font = font(900, wide ? 170 : style === "minimal" ? 330 : 250);
-    const aw = Math.min(g.measureText(amount).width, maxW - 60 * u);
-    const ah = (wide ? 180 : style === "minimal" ? 330 : 270) * u;
-    if (style === "minimal") {
-      g.fillStyle = p.text; g.fillText(amount, pad - 6 * u, y, maxW);
-      g.fillStyle = "#D8FF55"; g.fillRect(pad, y + ah - 18 * u, aw, 22 * u);
-      g.fillStyle = p.text; g.fillText(amount, pad - 6 * u, y, maxW);
-    } else {
-      g.save(); g.translate(pad, y); g.rotate(-0.025);
-      g.fillStyle = p.chip; g.beginPath(); g.roundRect(-14 * u, -6 * u, aw + 74 * u, ah, 44 * u); g.fill();
-      g.fillStyle = p.chipText; g.fillText(amount, 22 * u, 14 * u, maxW - 60 * u);
-      g.restore();
-    }
-    y += ah + 26 * u;
-    g.fillStyle = p.text; g.font = font(900, wide ? 44 : 78);
-    g.fillText("par mois*", pad, y);
-    y += (wide ? 58 : 104) * u;
-  }
-  g.fillStyle = p.sub; g.font = font(700, wide ? 28 : 46);
-  g.fillText(`Soit ${eurosDown(d.yearlyCents)} par an.`, pad, y, maxW);
-  y += (wide ? 44 : 84) * u;
-  if (!wide || style !== "beforeafter") {
-    g.fillStyle = p.text; g.font = font(900, wide ? 32 : 56);
-    for (const line of wrap(g, "Et toi, combien pourrais-tu économiser ?", maxW)) { g.fillText(line, pad, y); y += (wide ? 40 : 68) * u; }
-  }
-  g.fillStyle = p.sub; g.font = font(500, wide ? 15 : 24);
   const note = d.status === "realized" ? "*Économie déclarée par l'utilisateur. Chaque situation est différente." : "*Estimation frais inclus, d'après une comparaison d'offres vérifiées. Non garantie.";
-  g.fillText(note, pad, H - pad - (wide ? 104 : 150) * u, wide ? maxW : W - pad * 2 - qs - 40 * u);
+  const maxW = wide ? W - pad * 2 - qs - 60 * u : W - pad * 2;
+  const top = pad + (wide ? 64 : format === "story" ? 300 : 120) * u;
+  const limit = H - pad - (wide ? 126 : 190) * u; // le contenu ne doit jamais recouvrir le pied de carte
+
+  function base() {
+    g.fillStyle = p.bg; g.fillRect(0, 0, W, H);
+    if (style === "volt") {
+      g.fillStyle = "rgba(216,255,85,.20)"; g.beginPath(); g.arc(W - 60 * u, 200 * u, 380 * u, 0, 7); g.fill();
+      g.fillStyle = "rgba(255,255,255,.07)"; g.beginPath(); g.arc(40 * u, H - 160 * u, 340 * u, 0, 7); g.fill();
+    } else if (style === "beforeafter") {
+      g.fillStyle = "rgba(86,56,245,.55)"; g.beginPath(); g.arc(W + 40 * u, H * 0.5, 460 * u, 0, 7); g.fill();
+    }
+    g.textBaseline = "top";
+    const lw = (wide ? 240 : 330) * u;
+    const sc = lw / LOGO.viewBox[0];
+    g.save(); g.translate(pad, pad); g.scale(sc, sc);
+    g.fillStyle = p.logo; g.fill(new Path2D(LOGO.word));
+    g.fillStyle = p.dot; g.fill(new Path2D(LOGO.dot));
+    g.restore();
+    const qx = W - pad - qs, qy = H - pad - qs;
+    g.fillStyle = p.qrBg; g.beginPath(); g.roundRect(qx - 14 * u, qy - 14 * u, qs + 28 * u, qs + 28 * u, 22 * u); g.fill();
+    g.fillStyle = "#171529";
+    const cell = qs / n;
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (qr.modules.get(y, x)) g.fillRect(qx + x * cell, qy + y * cell, cell + 0.6, cell + 0.6);
+    const footW = W - pad * 2 - qs - 40 * u;
+    g.fillStyle = p.sub; g.font = fixed(500, wide ? 15 : 22);
+    g.fillText(note, pad, H - pad - (wide ? 100 : 146) * u, footW);
+    g.fillStyle = style === "minimal" ? "#5638F5" : "#D8FF55"; g.font = fixed(800, wide ? 26 : 38);
+    g.fillText("Ton argent. Tes règles.", pad, H - pad - (wide ? 70 : 96) * u, footW);
+    g.fillStyle = p.sub; g.font = fixed(700, wide ? 22 : 30);
+    const host = d.link.replace(/^https?:\/\//, "").replace(/\?.*$/, "");
+    g.fillText(host.length > 34 ? host.slice(0, 33) + "…" : host, pad, H - pad - (wide ? 30 : 40) * u, footW);
+  }
+
+  function content(): number {
+    let y = top;
+    g.font = font(800, wide ? 20 : 28);
+    const sw = g.measureText(statusLabel).width + 36 * u * k;
+    g.fillStyle = style === "minimal" ? "#5638F5" : "rgba(255,255,255,.16)";
+    g.beginPath(); g.roundRect(pad, y, sw, (wide ? 40 : 54) * u * k, 30 * u * k); g.fill();
+    g.fillStyle = "#F8F8F2"; g.fillText(statusLabel, pad + 18 * u * k, y + (wide ? 10 : 13) * u * k);
+    y += (wide ? 58 : 90) * u * k;
+
+    if (style === "beforeafter" && d.beforeCents && d.afterCents) {
+      const sideBySide = wide || format === "square";
+      const bw = sideBySide ? (maxW - 24 * u) / 2 : maxW;
+      const bh = (sideBySide ? 200 : 250) * u * k;
+      const blocks: [string, string, boolean][] = [["AVANT · par mois", price(d.beforeCents), false], ["APRÈS · par mois", price(d.afterCents), true]];
+      blocks.forEach(([label, value, after], i) => {
+        const bx = sideBySide ? pad + i * (bw + 24 * u) : pad;
+        const by = sideBySide ? y : y + i * (bh + 24 * u * k);
+        g.fillStyle = after ? "#D8FF55" : "rgba(255,255,255,.10)";
+        g.beginPath(); g.roundRect(bx, by, bw, bh, 36 * u * k); g.fill();
+        g.fillStyle = after ? "#171529" : "rgba(248,248,242,.75)"; g.font = font(800, sideBySide ? 24 : 32);
+        g.fillText(label, bx + 28 * u * k, by + 26 * u * k, bw - 56 * u * k);
+        g.fillStyle = after ? "#171529" : "#F8F8F2"; g.font = font(900, sideBySide ? 82 : 128);
+        const vy = by + (sideBySide ? 78 : 92) * u * k;
+        const tw = Math.min(g.measureText(value).width, bw - 56 * u * k);
+        g.fillText(value, bx + 28 * u * k, vy, bw - 56 * u * k);
+        if (!after) g.fillRect(bx + 20 * u * k, vy + (sideBySide ? 40 : 62) * u * k, tw + 16 * u * k, 8 * u * k);
+      });
+      y += sideBySide ? bh + 28 * u * k : 2 * bh + 54 * u * k;
+      g.fillStyle = p.text; g.font = font(900, wide ? 38 : 58);
+      g.fillText(`${amountLabel} de moins par mois*`, pad, y, maxW);
+      y += (wide ? 50 : 80) * u * k;
+    } else {
+      g.fillStyle = p.text; g.font = font(style === "minimal" ? 700 : 900, wide ? 34 : style === "minimal" ? 52 : 70);
+      for (const line of wrap(g, lead, maxW)) { g.fillText(line, pad, y); y += (wide ? 42 : style === "minimal" ? 64 : 84) * u * k; }
+      y += 12 * u * k;
+      g.font = font(900, wide ? 150 : style === "minimal" ? 320 : 250);
+      const aw = Math.min(g.measureText(amountLabel).width, maxW - 60 * u);
+      const ah = (wide ? 160 : style === "minimal" ? 320 : 270) * u * k;
+      if (style === "minimal") {
+        g.fillStyle = "#D8FF55"; g.fillRect(pad, y + ah - 30 * u * k, aw, 22 * u * k);
+        g.fillStyle = p.text; g.fillText(amountLabel, pad - 6 * u, y, maxW);
+      } else {
+        g.save(); g.translate(pad, y); g.rotate(-0.025);
+        g.fillStyle = p.chip; g.beginPath(); g.roundRect(-14 * u, -6 * u, aw + 74 * u * k, ah, 44 * u * k); g.fill();
+        g.fillStyle = p.chipText; g.fillText(amountLabel, 22 * u * k, 14 * u * k, maxW - 60 * u);
+        g.restore();
+      }
+      y += ah + 22 * u * k;
+      g.fillStyle = p.text; g.font = font(900, wide ? 42 : 76);
+      g.fillText("par mois*", pad, y);
+      y += (wide ? 54 : 100) * u * k;
+    }
+    g.fillStyle = p.sub; g.font = font(700, wide ? 28 : 46);
+    g.fillText(`Soit ${eurosDown(d.yearlyCents)} par an.`, pad, y, maxW);
+    y += (wide ? 42 : 80) * u * k;
+    g.fillStyle = p.text; g.font = font(900, wide ? 30 : 56);
+    for (const line of wrap(g, "Et toi, combien pourrais-tu économiser ?", maxW)) { g.fillText(line, pad, y); y += (wide ? 38 : 68) * u * k; }
+    return y;
+  }
+
+  for (let attempt = 0; attempt < 12; attempt++) {
+    base();
+    if (content() <= limit) break;
+    k -= 0.06;
+  }
 }
 
 const toBlob = (c: HTMLCanvasElement) => new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("export"))), "image/png"));

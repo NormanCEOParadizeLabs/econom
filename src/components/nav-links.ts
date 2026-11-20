@@ -1,5 +1,5 @@
 // Données de navigation partagées entre composants serveur et client.
-import { IconChat, IconCompare, IconDoc, IconGift, IconHelp, IconHome, IconPiggy, IconPin, IconRepeat, IconScan, IconSettings, IconShield, IconStar, IconUser } from "@/components/icons";
+import { IconChat, IconCompare, IconDoc, IconGift, IconHelp, IconHome, IconPiggy, IconPin, IconRepeat, IconScan, IconSettings, IconStar, IconUser } from "@/components/icons";
 
 export const TABS = [
   { href: "/app", label: "Accueil", icon: IconHome, exact: true },

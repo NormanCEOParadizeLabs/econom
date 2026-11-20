@@ -1,0 +1,36 @@
+# Blueprint Render — service web ECONOM. Les secrets (sync: false) sont saisis dans le tableau de bord Render, jamais dans le dépôt.
+services:
+  - type: web
+    name: econom
+    runtime: node
+    region: frankfurt
+    plan: free            # suffisant pour valider ; passer à « starter » avant l'ouverture (pas de mise en veille)
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-5-5
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_YEARLY
+        sync: false
+      - key: CRON_SECRET
+        generateValue: true

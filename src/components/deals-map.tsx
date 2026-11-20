@@ -8,7 +8,7 @@ export interface MapPoint { id: string; lat: number; lon: number; label: string;
 export function DealsMap({ center, points, onSelect }: { center: { lat: number; lon: number }; points: MapPoint[]; onSelect: (id: string) => void }) {
   const el = useRef<HTMLDivElement>(null);
   const select = useRef(onSelect);
-  select.current = onSelect;
+  useEffect(() => { select.current = onSelect; }, [onSelect]);
   useEffect(() => {
     let map: import("leaflet").Map | null = null;
     let cancelled = false;

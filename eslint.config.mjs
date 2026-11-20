@@ -15,4 +15,8 @@ const eslintConfig = defineConfig([
   ]),
 ]);
 
+// Règles du compilateur React assouplies pour trois usages volontaires et sûrs :
+// lecture du stockage local après montage, horodatage dans des Server Components, écriture du thème sur <html>.
+eslintConfig.push({ rules: { "react-hooks/set-state-in-effect": "off", "react-hooks/purity": "off", "react-hooks/immutability": "off" } });
+
 export default eslintConfig;

@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ECONOM. — Ton argent. Tes règles.
 
-## Getting Started
+Application web (PWA) du pouvoir d'achat : comparateur déterministe de forfaits mobiles et de box internet, analyse de factures par Claude, suivi des abonnements, bons plans locaux sourcés, suivi des économies, parrainage et abonnement ECONOM. Plus.
 
-First, run the development server:
+## Pile technique
+
+| Couche | Choix |
+|---|---|
+| Frontend / backend | Next.js 16 (App Router, Server Actions, Route Handlers), TypeScript, Tailwind CSS v4 |
+| Données et comptes | Supabase : PostgreSQL, Auth, Row Level Security sur toutes les tables |
+| IA | API Anthropic (SDK officiel), serveur uniquement, sorties structurées validées par Zod |
+| Paiement | Stripe Checkout (abonnement), Customer Portal, webhooks signés et idempotents |
+| Tests | Vitest (unitaires + intégration sur Supabase local), Playwright (bout en bout), axe (accessibilité) |
+| Hébergement | Render (`render.yaml`), tâche quotidienne via GitHub Actions |
+
+## Démarrer en local
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npx supabase start          # nécessite Docker ; applique supabase/migrations
+cp .env.ci .env.local       # clés publiques de démonstration de la pile locale
+npm run dev                 # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Devenir administrateur (le rôle ne vient que de la table `admins`) :
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```sql
+insert into public.admins (user_id) select id from auth.users where email = 'toi@exemple.fr';
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tests
 
-## Learn More
+```bash
+npm test                    # 97 tests : moteur, RLS, Stripe, IA (simulée), parrainage, défis, Growth
+npm run build && npm run test:e2e   # 17 scénarios : iPhone, Android, petit écran, ordinateur
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Organisation du code
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/lib/engine.ts            Moteur de comparaison (aucune IA, montants en centimes)
+src/lib/services/            Comparaison, analyse, parrainage, bons plans, tâches planifiées
+src/lib/ai/                  Client Claude, extraction de facture, assistant à outils, scripts Growth
+src/lib/stripe/              Client, synchronisation des abonnements (webhooks)
+src/app/(site)/              Site public, comparateurs sans compte, pages légales
+src/app/app/                 Application connectée
+src/app/admin/               Administration et Growth Studio
+src/app/api/                 Routes API (validation Zod, limitation de débit)
+supabase/migrations/         Schéma, RLS, fonctions, catalogue vérifié
+tests/                       unit · integration · e2e
+docs/                        Déploiement, conformité, moteur viral
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Principes non négociables
 
-## Deploy on Vercel
+- Les prix viennent d'un catalogue d'offres vérifiées, sourcées et datées ; une offre expirée disparaît d'elle-même.
+- Les calculs sont faits par le moteur déterministe. Claude lit, explique et rédige : il ne fixe jamais un tarif.
+- Une économie n'est jamais présentée comme garantie ; « potentielle », « lancée », « confirmée » et « constatée » sont séparées.
+- Les factures ne sont pas conservées : seuls les champs extraits le sont.
+- Les droits Premium sont vérifiés en base à chaque opération (`has_plus`), jamais déduits de l'interface.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Voir `docs/DEPLOIEMENT.md` pour la mise en ligne et `docs/CONFORMITE.md` pour les points à faire valider.

@@ -14,6 +14,8 @@ export function DeleteAccount({ hasSubscription }: { hasSubscription: boolean })
       const res = await fetch("/api/account/delete", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ confirm: String(f.get("confirm")).trim().toUpperCase(), password: f.get("password") }) });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error?.code === "invalid_input" ? "Écris SUPPRIMER pour confirmer." : json.error?.message);
+      // Rechargement complet voulu : la session vient d'être détruite côté serveur.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.assign("/?compte=supprime");
     } catch (err) {
       setError((err as Error).message || "Suppression impossible."); setPending(false);

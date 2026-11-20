@@ -293,7 +293,7 @@ begin
     select coalesce(jsonb_object_agg(variant, jsonb_build_object('exposed', exposed, 'converted', converted)), '{}'::jsonb)
     from (
       select props ->> ('exp_' || p_key) variant,
-        count(*) filter (where name = 'experiment_exposed') exposed,
+        count(*) filter (where name = 'experiment_exposed' and props ->> 'experiment' = p_key) exposed,
         count(*) filter (where name = goal) converted
       from public.analytics_events where props ? ('exp_' || p_key) group by 1
     ) t
