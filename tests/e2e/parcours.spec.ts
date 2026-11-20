@@ -266,3 +266,23 @@ test("import d'un relevé bancaire : abonnements détectés, ajout au suivi, con
   await expect(page.getByText("Netflix a augmenté")).toBeVisible();
   await expect(page.getByRole("link", { name: "Comparer maintenant" })).toHaveAttribute("href", /fournisseur=Free\+Mobile&prix=19\.99/);
 });
+
+test("comparateur box internet : frais de mise en service et de résiliation comptés", async ({ page }) => {
+  await page.goto("/comparateur/internet");
+  await page.getByLabel("Prix payé chaque mois (€)").fill("44,99");
+  await page.getByLabel("Technologie").selectOption("fibre");
+  await page.getByRole("button", { name: "Comparer maintenant" }).click();
+  const result = page.getByRole("region", { name: "Ton résultat" });
+  await expect(result).toBeVisible();
+  // 44,99 × 12 − (24,99 × 12 + 39 € de mise en service) = 201,00 € ; sur 24 mois : 441,00 €
+  await expect(result).toContainText("201,00");
+  await expect(result).toContainText("441,00");
+  await expect(page.getByText("Éligibilité à ton adresse non vérifiée").first()).toBeVisible();
+  await expect(page.getByText(/Frais si tu quittes cette offre plus tard : 69,00/)).toBeAttached();
+});
+
+test("page publique des bons plans : accessible sans compte ni géolocalisation", async ({ page }) => {
+  await page.goto("/bons-plans");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("bons plans vérifiés");
+  await expect(page.getByText("Où cherches-tu ?")).toBeVisible();
+});

@@ -7,6 +7,7 @@ const NAV = [
   { href: "/comment-ca-marche", label: "Comment ça marche" },
   { href: "/comparateur/mobile", label: "Forfaits mobiles" },
   { href: "/comparateur/internet", label: "Box internet" },
+  { href: "/bons-plans", label: "Bons plans" },
   { href: "/tarifs", label: "Tarifs" },
   { href: "/conseils", label: "Conseils" },
 ];

@@ -44,9 +44,19 @@ Plafond mensuel, quotas et taille maximale des documents se règlent dans Admini
 
 ## 5. Tâche quotidienne
 
-Dans GitHub → Settings → Secrets and variables → Actions : `APP_URL` et `CRON_SECRET` (même valeur que sur Render).
-Le workflow `.github/workflows/cron.yml` appelle `/api/cron/daily` chaque jour (rappels, échéances, nouvelles opportunités,
-résumé mensuel, alerte d'expiration du catalogue).
+En production, la tâche est planifiée **dans Supabase** (extensions `pg_cron` et `pg_net`) : chaque jour à 05:17 UTC, la base
+appelle `POST /api/cron/daily` avec le secret partagé, conservé chiffré dans Supabase Vault (`econom_cron_secret`).
+Elle envoie les rappels et alertes, revérifie les bons plans repérés automatiquement, lance la recherche de bons plans pour la
+ville suivante et signale les offres du catalogue qui expirent.
+
+```sql
+select jobname, schedule, active from cron.job;                                   -- voir la planification
+select status, return_message, start_time from cron.job_run_details order by start_time desc limit 5;  -- dernières exécutions
+```
+
+Si `CRON_SECRET` change sur Render, mettre à jour le secret : `select vault.update_secret(id, '<nouvelle valeur>') from vault.secrets where name = 'econom_cron_secret';`
+Si le domaine change, replanifier la tâche avec la nouvelle URL. Le workflow GitHub `.github/workflows/cron.yml` reste disponible
+comme solution de rechange (secrets `APP_URL` et `CRON_SECRET`).
 
 ## 6. Vérifications après déploiement
 
