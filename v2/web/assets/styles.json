@@ -1,0 +1,266 @@
+[
+  {
+    "id": "impact",
+    "name": "Yap Impact",
+    "audience": "Créateurs TikTok",
+    "description": "Coupes nerveuses, punchlines en grand, SFX précis.",
+    "features": {
+      "pacing": 0.97,
+      "captions": 0.93,
+      "sound_design": 0.88,
+      "motion": 0.76,
+      "broll": 0.26,
+      "color": 0.82
+    },
+    "colors": [
+      "#f7aa2b",
+      "#ff4be3"
+    ],
+    "demo_title": "BAM. TON IDÉE.",
+    "tags": "Punchlines • cuts • pop",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  },
+  {
+    "id": "cinematic",
+    "name": "Ciné Story",
+    "audience": "Storytellers",
+    "description": "Narration émotionnelle, cadrage ciné et transitions calmes.",
+    "features": {
+      "pacing": 0.36,
+      "captions": 0.28,
+      "sound_design": 0.39,
+      "motion": 0.48,
+      "broll": 0.85,
+      "color": 0.93
+    },
+    "colors": [
+      "#fa935b",
+      "#35265c"
+    ],
+    "demo_title": "Chaque histoire compte.",
+    "tags": "Storytelling • texture • cinéma",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  },
+  {
+    "id": "editorial",
+    "name": "Éditorial",
+    "audience": "Experts",
+    "description": "Graphisme sobre, légendes soignées, montage crédible.",
+    "features": {
+      "pacing": 0.51,
+      "captions": 0.65,
+      "sound_design": 0.24,
+      "motion": 0.28,
+      "broll": 0.33,
+      "color": 0.61
+    },
+    "colors": [
+      "#ddd3ee",
+      "#474058"
+    ],
+    "demo_title": "Des idées qui restent.",
+    "tags": "Typo • précision • élégance",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  },
+  {
+    "id": "podcast",
+    "name": "Podcast Punch",
+    "audience": "Podcasteurs",
+    "description": "Multicadre, sous-titres forts, cuts centrés sur l’émotion.",
+    "features": {
+      "pacing": 0.78,
+      "captions": 0.91,
+      "sound_design": 0.74,
+      "motion": 0.59,
+      "broll": 0.12,
+      "color": 0.56
+    },
+    "colors": [
+      "#65ccff",
+      "#9b58ff"
+    ],
+    "demo_title": "Écoute ça.",
+    "tags": "Dialogue • micro • hooks",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  },
+  {
+    "id": "pop",
+    "name": "Pop Viral",
+    "audience": "Créateurs TikTok",
+    "description": "Couleurs pop, rythme punchy et animations joueurs.",
+    "features": {
+      "pacing": 0.92,
+      "captions": 0.94,
+      "sound_design": 0.94,
+      "motion": 0.98,
+      "broll": 0.33,
+      "color": 0.94
+    },
+    "colors": [
+      "#ee40a7",
+      "#fdcf32"
+    ],
+    "demo_title": "TU VAS ADORER.",
+    "tags": "Flash • néon • énergie",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  },
+  {
+    "id": "minimal",
+    "name": "Quiet Minimal",
+    "audience": "Lifestyle",
+    "description": "Montage sobre, élégance des silences et typo discrète.",
+    "features": {
+      "pacing": 0.18,
+      "captions": 0.22,
+      "sound_design": 0.08,
+      "motion": 0.12,
+      "broll": 0.11,
+      "color": 0.25
+    },
+    "colors": [
+      "#dfdacd",
+      "#8f95aa"
+    ],
+    "demo_title": "Less, but better.",
+    "tags": "Calme • léger • clair",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  },
+  {
+    "id": "business",
+    "name": "Business Pro",
+    "audience": "Entrepreneurs",
+    "description": "Autorité, sobriété, titres propres et rythme professionnel.",
+    "features": {
+      "pacing": 0.57,
+      "captions": 0.72,
+      "sound_design": 0.31,
+      "motion": 0.37,
+      "broll": 0.41,
+      "color": 0.39
+    },
+    "colors": [
+      "#5d8bff",
+      "#a3cbd5"
+    ],
+    "demo_title": "Ce qui compte vraiment.",
+    "tags": "Preuve • impact • confiance",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  },
+  {
+    "id": "documentary",
+    "name": "Docu Grain",
+    "audience": "Storytellers",
+    "description": "Pellicule subtile, B-roll narratif et atmosphère immersive.",
+    "features": {
+      "pacing": 0.29,
+      "captions": 0.44,
+      "sound_design": 0.51,
+      "motion": 0.56,
+      "broll": 0.97,
+      "color": 0.73
+    },
+    "colors": [
+      "#ecae75",
+      "#6c5e58"
+    ],
+    "demo_title": "Une minute. Un monde.",
+    "tags": "B-roll • récit • grain",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  },
+  {
+    "id": "motion",
+    "name": "Motion Max",
+    "audience": "Motion designers",
+    "description": "Texte cinétique avancé, formes graphiques et transitions.",
+    "features": {
+      "pacing": 0.89,
+      "captions": 0.92,
+      "sound_design": 0.89,
+      "motion": 1.0,
+      "broll": 0.57,
+      "color": 0.95
+    },
+    "colors": [
+      "#b554ff",
+      "#32e6eb"
+    ],
+    "demo_title": "MAKE IT MOVE.",
+    "tags": "Motion • type • design",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  },
+  {
+    "id": "edu",
+    "name": "Edu Clear",
+    "audience": "Formateurs",
+    "description": "Hiérarchie de l’information et mots-clés mis en évidence.",
+    "features": {
+      "pacing": 0.62,
+      "captions": 0.83,
+      "sound_design": 0.29,
+      "motion": 0.58,
+      "broll": 0.51,
+      "color": 0.4
+    },
+    "colors": [
+      "#6acdc0",
+      "#f1db85"
+    ],
+    "demo_title": "Retient ceci.",
+    "tags": "Pédagogie • lisibilité",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  },
+  {
+    "id": "raw",
+    "name": "Raw Authentic",
+    "audience": "Créateurs débutants",
+    "description": "Sensation spontanée, coupes utiles et effets presque invisibles.",
+    "features": {
+      "pacing": 0.64,
+      "captions": 0.34,
+      "sound_design": 0.12,
+      "motion": 0.15,
+      "broll": 0.13,
+      "color": 0.18
+    },
+    "colors": [
+      "#eac6b9",
+      "#8d82a4"
+    ],
+    "demo_title": "Juste toi.",
+    "tags": "Authenticité • spontanéité",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  },
+  {
+    "id": "lux",
+    "name": "Soft Luxury",
+    "audience": "Marques premium",
+    "description": "Minimalisme délicat, plans respirants et sound design subtil.",
+    "features": {
+      "pacing": 0.24,
+      "captions": 0.36,
+      "sound_design": 0.2,
+      "motion": 0.4,
+      "broll": 0.66,
+      "color": 0.91
+    },
+    "colors": [
+      "#f1cdb4",
+      "#7a667b"
+    ],
+    "demo_title": "Every detail matters.",
+    "tags": "Luxe • lent • précis",
+    "status": "demo_visual_only",
+    "licensed_preview": false
+  }
+]

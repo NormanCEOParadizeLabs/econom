@@ -1,3 +1,3 @@
-# YAPR isolated Render deploy
+# YAPR Studio — Beta v0.9
 
-Release branch only; Econom main/default branch and existing Render service are unchanged. Docker runs FastAPI+FFmpeg. App secrets configured in Render environment and never committed.
+Isolated Render deployment branch for the YAPR service. Implementation under `v2/`. This branch is not Econom's main branch; GLPoche remains untouched.
